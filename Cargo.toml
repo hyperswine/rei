@@ -2,8 +2,14 @@
 name = "reic"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 logos = "0.12.0"
+lalrpop-util = "0.19.7"
+regex = "1"
+
+[build-dependencies]
+lalrpop = "0.19.7"

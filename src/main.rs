@@ -1,5 +1,3 @@
-use reic::Token;
-
 fn main() {
     // 1. handle reic file.rei
     use std::fs::read_to_string;
@@ -9,14 +7,27 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     // Check if there are enough args
-    if args.len() != 1 {
+    if args.len() != 2 {
         println!("Usage: reic <file.rei>");
         return;
     }
 
-    // Read the file
-    let file = read_to_string(&args[1]).unwrap();
+    println!("file = {}", &args[1]);
 
-    // 2. parse the file
-    let tokens = reic::tokenise(&file);
+    // Read the file
+    let file_str = read_to_string(&args[1]).unwrap();
+}
+
+pub mod ast;
+
+use lalrpop_util::lalrpop_mod;
+
+lalrpop_mod!(pub calc);
+
+#[test]
+fn calc() {
+    let expr = calc::ExprParser::new()
+        .parse("22 * 44 + 66")
+        .unwrap();
+    assert_eq!(&format!("{:?}", expr), "((22 * 44) + 66)");
 }
