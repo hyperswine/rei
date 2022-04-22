@@ -1,6 +1,4 @@
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
+// FOR DEMO PURPOSES ONLY
 
 use self::AstNode::*;
 use pest::error::Error;
@@ -8,8 +6,8 @@ use pest::Parser;
 use std::ffi::CString;
 
 #[derive(Parser)]
-#[grammar = "grammar/rei.pest"]
-pub struct ReiParser;
+#[grammar = "grammar/j-lang.pest"]
+pub struct JParser;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum MonadicVerb {
@@ -65,7 +63,7 @@ pub enum AstNode {
 pub fn parse(source: &str) -> Result<Vec<AstNode>, Error<Rule>> {
     let mut ast = vec![];
 
-    let pairs = ReiParser::parse(Rule::program, source)?;
+    let pairs = JParser::parse(Rule::program, source)?;
     for pair in pairs {
         match pair.as_rule() {
             Rule::expr => {
@@ -196,6 +194,3 @@ fn build_ast_from_term(pair: pest::iterators::Pair<Rule>) -> AstNode {
         unknown_term => panic!("Unexpected term: {:?}", unknown_term),
     }
 }
-
-// EXAMPLE FOR J
-// pub mod jparser;
