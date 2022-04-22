@@ -1,3 +1,4 @@
+#[cfg(not(test))]
 fn main() {
     // 1. handle reic file.rei
     use std::fs::read_to_string;
@@ -19,6 +20,7 @@ fn main() {
 }
 
 pub mod ast;
+pub mod tok;
 
 use lalrpop_util::lalrpop_mod;
 

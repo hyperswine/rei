@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use ast::{Expr, Opcode}; // (0)
+use crate::ast::{Expr, Opcode};
 
 grammar;
 
@@ -24,7 +24,7 @@ FactorOp: Opcode = {
 };
 
 Term: Box<Expr> = {
-    Num => Box::new(Expr::Number(<>)), // (4)
+    Num => Box::new(Expr::Number(<>)),
     "(" <Expr> ")"
 };
 
