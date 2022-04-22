@@ -170,7 +170,7 @@ pub enum Token {
 pub fn tokenise(file: &str) -> Vec<Token> {
     let mut lex = Token::lexer(file);
 
-    let res = lex.filter_map(|t| t.ok()).collect();
+    // let res = lex.filter_map(|t| t.ok()).collect();
 
-    res
+    vec![]
 }
