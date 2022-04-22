@@ -1,5 +1,3 @@
-use reic::parse;
-
 fn main() {
     // 1. handle reic file.rei
     use std::env;
@@ -18,6 +16,6 @@ fn main() {
     let file_str = read_to_string(&args[1]).expect("cannot read file");
 
     // Parse the file contents
-    let astnode = parse(&file_str).expect("unsuccessful parse");
-    println!("{:?}", &astnode);
+    // let astnode = parse(&file_str).expect("unsuccessful parse");
+    // println!("{:?}", &astnode);
 }
