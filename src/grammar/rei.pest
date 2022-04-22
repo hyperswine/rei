@@ -1,37 +1,88 @@
-hexDigit = {
-    ASCII_DIGIT|
-    "a"|
-    "b"|
-    "c"|
-    "d"|
-    "e"|
-    "f"|
-    "A"|
-    "B"|
-    "C"|
-    "D"|
-    "E"|
-    "F"
-};
+// UNICODE NOTES:
+// I wanna support it
+// but for now nah
 
-whiteSpace = {" "|"\t"|"\r"|"\n"};
+UnicodeEscape = {"\\u" ~ "u"* ~ HexDigit ~ HexDigit ~ HexDigit ~ HexDigit}
 
-upper = {"A"|"B"|"C"|"D"|"E"|"F"|"G"|"H"|"I"|"J"|"K"|"L"|"M"|"N"|"O"|"P"|"Q"|"R"|"S"|"T"|"U"|"V"|"W"|"X"|"Y"|"Z"};
+HexDigit = {ASCII_HEX_DIGIT}
 
-lower = {"a"|"b"|"c"|"d"|"e"|"f"|"g"|"h"|"i"|"j"|"k"|"l"|"m"|"n"|"o"|"p"|"q"|"r"|"s"|"t"|"u"|"v"|"w"|"x"|"y"|"z"};
+whiteSpace = {" "|"\t"|"\r"|"\n"}
 
-letter = {upper|lower};
+upper = {ASCII_ALPHA_UPPER}
 
-digit = {"0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9"};
+lower = {ASCII_ALPHA_LOWER}
 
-paren = {"("|")"|"["|"]"|"{"|"}"};
+letter = {ASCII_ALPHA}
 
-delim = {","|";"|"."|"\""|"'"|"`"};
+digit = {ASCII_DIGIT}
 
-opchar = {~(whiteSpace|letter|digit|paren|delim|opchar)};
+paren = {"("|")"|"["|"]"|"{"|"}"}
+
+delim = {","|"."|"\""|"'"|"`"}
+
+opchar = {!(whiteSpace|letter|digit|paren|delim|printableChar)}
+
+printableChar = {'!'..'~'}
 
 // stuff you can escape, like returns, \ and "
-charEscapeSeq = {"\\" ("a"|"b"|"f"|"n"|"r"|"t"|"v"|"\\"|"\"")};
+charEscapeSeq = {"\\" ~ ("a"|"b"|"f"|"n"|"r"|"t"|"v"|"\\"|"\"")}
 
-op = {opchar opchar*};
+// EBNF NOTES:
+// [] = 0-1
+// {} = 0+
+// ?  = 0-1
+// *  = 0+
+// +  = 1+
 
+// TODO: Apparently Pest cant parse EBNF since it is PEG
+
+// PARENS = groupings for OR and precedence, not 1. For 1+ always use +
+
+op = {opchar ~ opchar*}
+
+varid = {lower ~ idrest}
+
+plainid = {(upper ~ idrest)|varid|op}
+
+id = {plainid|("`" ~ stringLiteral ~ "`")}
+
+idrest = {(letter|digit)* ~ ("_" ~ op)*}
+
+integerLiteral = {(decimalNumeral|hexNumeral) ~ ("_" ~ op)?}
+
+decimalNumeral = {"0" | nonZeroDigit ~ digit*}
+
+hexNumeral = {"0" ~ ("x"|"X") ~ HexDigit ~ HexDigit*}
+
+nonZeroDigit = {ASCII_NONZERO_DIGIT}
+
+// TODO: this isnt actually right but whatever
+floatingPointLiteral = {(decimalNumeral|hexNumeral) ~ ("_" ~ op)? ~ ("." ~ digit* ~ ("_" ~ op)?)}
+
+exponentPart = {("e"|"E") ~ ("+"|"-")? ~ digit ~ digit*}
+
+floatType = {"f"|"F"|"d"|"D"}
+
+booleanLiteral = {"true"|"false"}
+
+characterLiteral = {"'" ~ (charEscapeSeq|printableChar) ~ "'"}
+
+stringLiteral = {("\"" ~ stringElement* ~ "\"") | ("\"\"\"" ~ multiLineChars* ~ "\"\"\"")}
+
+// TODO: I think except is ^ or something. Needs to be except "
+printableExceptDoubleQuote = {!("\"" ~ printableChar)}
+
+stringElement = {printableExceptDoubleQuote | charEscapeSeq}
+
+multiLineChars = {("\""? ~ "\""? ~ charNoDoubleQuote)? ~ "\""?}
+
+symbolLiteral = {"'" ~ plainid}
+
+charNoDoubleQuote = {!("\"" ~ printableChar)}
+
+// TODO: I dont think this is right, printableChar isnt right
+comment = {("//" ~ printableChar) | ("/*" ~ multiLineChars ~ "*/")}
+
+nl = {"\n"}
+
+semi = {";" | (nl ~ nl?)}

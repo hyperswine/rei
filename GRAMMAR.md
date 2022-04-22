@@ -1,5 +1,7 @@
 # Grammar
 
+Pretty much based on scala.
+
 ## PEG
 
 ```rust
