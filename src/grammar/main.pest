@@ -10,14 +10,6 @@ expr = {
     | terms
 }
 
-expr = {
-      assgmtExpr
-    | monadicExpr
-    | dyadicExpr
-    | string
-    | terms
-}
-
 monadicExpr = { verb ~ expr }
 
 dyadicExpr = { (monadicExpr | terms) ~ verb ~ expr }

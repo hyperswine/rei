@@ -1,3 +1,17 @@
+extern crate pest;
+#[macro_use]
+extern crate pest_derive;
+
+use self::AstNode::*;
+use pest::error::Error;
+use pest::Parser;
+use std::ffi::CString;
+
+#[derive(Parser)]
+#[grammar = "grammar/main.pest"]
+pub struct JParser;
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum MonadicVerb {
     Increment,
     Square,
@@ -8,6 +22,7 @@ pub enum MonadicVerb {
     ShapeOf,
 }
 
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum DyadicVerb {
     Plus,
     Times,
@@ -24,6 +39,7 @@ pub enum DyadicVerb {
     Shape,
 }
 
+#[derive(PartialEq, Debug, Clone)]
 pub enum AstNode {
     Print(Box<AstNode>),
     Integer(i32),
@@ -71,7 +87,67 @@ fn build_ast_from_expr(pair: pest::iterators::Pair<Rule>) -> AstNode {
             let expr = pair.next().unwrap();
             let expr = build_ast_from_expr(expr);
             parse_monadic_verb(verb, expr)
-        } // ... other cases elided here ...
+        }
+        Rule::dyadicExpr => {
+            let mut pair = pair.into_inner();
+            let lhspair = pair.next().unwrap();
+            let lhs = build_ast_from_expr(lhspair);
+            let verb = pair.next().unwrap();
+            let rhspair = pair.next().unwrap();
+            let rhs = build_ast_from_expr(rhspair);
+            parse_dyadic_verb(verb, lhs, rhs)
+        }
+        Rule::terms => {
+            let terms: Vec<AstNode> = pair.into_inner().map(build_ast_from_term).collect();
+            // If there's just a single term, return it without
+            // wrapping it in a Terms node.
+            match terms.len() {
+                1 => terms.get(0).unwrap().clone(),
+                _ => Terms(terms),
+            }
+        }
+        Rule::assgmtExpr => {
+            let mut pair = pair.into_inner();
+            let ident = pair.next().unwrap();
+            let expr = pair.next().unwrap();
+            let expr = build_ast_from_expr(expr);
+            AstNode::IsGlobal {
+                ident: String::from(ident.as_str()),
+                expr: Box::new(expr),
+            }
+        }
+        Rule::string => {
+            let str = &pair.as_str();
+            // Strip leading and ending quotes.
+            let str = &str[1..str.len() - 1];
+            // Escaped string quotes become single quotes here.
+            let str = str.replace("''", "'");
+            AstNode::Str(CString::new(&str[..]).unwrap())
+        }
+        unknown_expr => panic!("Unexpected expression: {:?}", unknown_expr),
+    }
+}
+
+fn parse_dyadic_verb(pair: pest::iterators::Pair<Rule>, lhs: AstNode, rhs: AstNode) -> AstNode {
+    AstNode::DyadicOp {
+        lhs: Box::new(lhs),
+        rhs: Box::new(rhs),
+        verb: match pair.as_str() {
+            "+" => DyadicVerb::Plus,
+            "*" => DyadicVerb::Times,
+            "-" => DyadicVerb::Minus,
+            "<" => DyadicVerb::LessThan,
+            "=" => DyadicVerb::Equal,
+            ">" => DyadicVerb::LargerThan,
+            "%" => DyadicVerb::Divide,
+            "^" => DyadicVerb::Power,
+            "|" => DyadicVerb::Residue,
+            "#" => DyadicVerb::Copy,
+            ">." => DyadicVerb::LargerOf,
+            ">:" => DyadicVerb::LargerOrEqual,
+            "$" => DyadicVerb::Shape,
+            _ => panic!("Unexpected dyadic verb: {}", pair.as_str()),
+        },
     }
 }
 

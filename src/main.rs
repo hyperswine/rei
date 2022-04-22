@@ -15,7 +15,9 @@ fn main() {
     }
 
     // Read the file
-    let file = read_to_string(&args[1]).unwrap();
+    let file_str = read_to_string(&args[1]).expect("cannot read file");
 
-    let res = parse(&file);
+    // Parse the file contents
+    let astnode = parse(&file_str).expect("unsuccessful parse");
+    println!("{:?}", &astnode);
 }
