@@ -1,176 +1,122 @@
-use std::vec;
-
-use logos::Logos;
-
-#[derive(Logos, Debug, PartialEq)]
-pub enum Token {
-    #[token("//")]
-    SinglelineComment,
-    // mainly for doc comments, e.g. at the top of the file
-    #[token("#")]
-    HashComment,
-    #[token("/*")]
-    MultilineCommentBegin,
-    #[token("*/")]
-    MultilineCommentEnd,
-
-    #[token("mod")]
-    Module,
-    #[token("namespace")]
-    Namespace,
-    #[token("use")]
-    Use,
-    #[token("class")]
-    Class,
-    #[token("fn")]
-    Function,
-    #[token("enum")]
-    Enum,
-    #[token("self")]
-    SelfKeyword,
-    #[token("macro")]
-    Macro,
-    #[token("let")]
-    Let,
-    #[token("const")]
-    Const,
-    #[token("static")]
-    Static,
-    #[token("new")]
-    New,
-    #[token("unsafe")]
-    Unsafe,
-    #[token("super")]
-    Super,
-
-    #[token("if")]
-    If,
-    #[token("else")]
-    Else,
-    #[token("return")]
-    Return,
-    #[token("break")]
-    Break,
-    #[token("while")]
-    While,
-    #[token("for")]
-    For,
-    #[token("match")]
-    Match,
-    #[token("continue")]
-    Continue,
-    #[token("loop")]
-    Loop,
-    #[token("yield")]
-    Yield,
-    #[token("case")]
-    Case,
-    #[token("default")]
-    Default,
-    #[token("switch")]
-    Switch,
-
-    // Conditions
-    #[token("true")]
-    True,
-    #[token("false")]
-    False,
-    #[token("and")]
-    And,
-    #[token("or")]
-    Or,
-    #[token("not")]
-    Not,
-    #[token("is")]
-    Is,
-    #[token("as")]
-    As,
-    #[token("in")]
-    In,
-
-    // @
-    #[token("@")]
-    OperatorAnnotation,
-    // Usually in annotations and lists/tuples
-    #[token(",")]
-    OperatorComma,
-
-    // Context sensitive
-    #[token("(")]
-    OperatorBracketLeft,
-    #[token(")")]
-    OperatorBracketRight,
-    #[token("{")]
-    OperatorCurlyBraceLeft,
-    #[token("}")]
-    OperatorCurlyBraceRight,
-
-    // Compiler directive on f-strings
-    #[token("$")]
-    OperatorDollarSign,
-
-    // OVERLOADABLE or SPECIFIC
-    #[token("+")]
-    OperatorPlus,
-    #[token("-")]
-    OperatorMinus,
-    #[token("/")]
-    OperatorLeftSlash,
-    #[token("*")]
-    OperatorStar,
-    // LArrow [id] RArrow = <id> which means Option<id>
-    #[token("<")]
-    OperatorLeftArrow,
-    #[token(">")]
-    OperatorRightArrow,
-    #[token("=")]
-    OperatorEquals,
-    #[token("==")]
-    OperatorIdentity,
-    #[token("!")]
-    OperatorExclamation,
-    #[token("?")]
-    OperatorQuestion,
-    #[token(".")]
-    OperatorDot,
-    // mainly for range based loops
-    #[token("..")]
-    OperatorDoubleDot,
-    #[token(":")]
-    OperatorColon,
-    #[token("::")]
-    OperatorDoubleColon,
-    #[token("'")]
-    OperatorSingleQuote,
-    #[token("\"")]
-    OperatorDoubleQuote,
-    #[token("^")]
-    OperatorUpArrow,
-
-    // SPECIAL: label deref
-    #[token("\\")]
-    OperatorRightSlash,
-
-    #[regex("[a-zA-Z]+")]
-    Identifier,
-    #[regex("[0-9]+")]
-    Number,
-    // ? I have no idea if this would work
-    #[regex(r"\d*\.*+\d+")]
-    Fraction,
-
-    // Logos requires one token variant to handle errors,
-    // We can also use this variant to define whitespace,
-    // or any other matches we wish to skip.
-    #[error]
-    #[regex(r"[ \t\n\f]+", logos::skip)]
-    Error,
+pub enum MonadicVerb {
+    Increment,
+    Square,
+    Negate,
+    Reciprocal,
+    Tally,
+    Ceiling,
+    ShapeOf,
 }
 
-pub fn tokenise(file: &str) -> Vec<Token> {
-    let mut lex = Token::lexer(file);
+pub enum DyadicVerb {
+    Plus,
+    Times,
+    LessThan,
+    LargerThan,
+    Equal,
+    Minus,
+    Divide,
+    Power,
+    Residue,
+    Copy,
+    LargerOf,
+    LargerOrEqual,
+    Shape,
+}
 
-    // let res = lex.filter_map(|t| t.ok()).collect();
+pub enum AstNode {
+    Print(Box<AstNode>),
+    Integer(i32),
+    DoublePrecisionFloat(f64),
+    MonadicOp {
+        verb: MonadicVerb,
+        expr: Box<AstNode>,
+    },
+    DyadicOp {
+        verb: DyadicVerb,
+        lhs: Box<AstNode>,
+        rhs: Box<AstNode>,
+    },
+    Terms(Vec<AstNode>),
+    IsGlobal {
+        ident: String,
+        expr: Box<AstNode>,
+    },
+    Ident(String),
+    Str(CString),
+}
 
-    vec![]
+pub fn parse(source: &str) -> Result<Vec<AstNode>, Error<Rule>> {
+    let mut ast = vec![];
+
+    let pairs = JParser::parse(Rule::program, source)?;
+    for pair in pairs {
+        match pair.as_rule() {
+            Rule::expr => {
+                ast.push(Print(Box::new(build_ast_from_expr(pair))));
+            }
+            _ => {}
+        }
+    }
+
+    Ok(ast)
+}
+
+fn build_ast_from_expr(pair: pest::iterators::Pair<Rule>) -> AstNode {
+    match pair.as_rule() {
+        Rule::expr => build_ast_from_expr(pair.into_inner().next().unwrap()),
+        Rule::monadicExpr => {
+            let mut pair = pair.into_inner();
+            let verb = pair.next().unwrap();
+            let expr = pair.next().unwrap();
+            let expr = build_ast_from_expr(expr);
+            parse_monadic_verb(verb, expr)
+        } // ... other cases elided here ...
+    }
+}
+
+fn parse_monadic_verb(pair: pest::iterators::Pair<Rule>, expr: AstNode) -> AstNode {
+    AstNode::MonadicOp {
+        verb: match pair.as_str() {
+            ">:" => MonadicVerb::Increment,
+            "*:" => MonadicVerb::Square,
+            "-" => MonadicVerb::Negate,
+            "%" => MonadicVerb::Reciprocal,
+            "#" => MonadicVerb::Tally,
+            ">." => MonadicVerb::Ceiling,
+            "$" => MonadicVerb::ShapeOf,
+            _ => panic!("Unsupported monadic verb: {}", pair.as_str()),
+        },
+        expr: Box::new(expr),
+    }
+}
+
+fn build_ast_from_term(pair: pest::iterators::Pair<Rule>) -> AstNode {
+    match pair.as_rule() {
+        Rule::integer => {
+            let istr = pair.as_str();
+            let (sign, istr) = match &istr[..1] {
+                "_" => (-1, &istr[1..]),
+                _ => (1, &istr[..]),
+            };
+            let integer: i32 = istr.parse().unwrap();
+            AstNode::Integer(sign * integer)
+        }
+        Rule::decimal => {
+            let dstr = pair.as_str();
+            let (sign, dstr) = match &dstr[..1] {
+                "_" => (-1.0, &dstr[1..]),
+                _ => (1.0, &dstr[..]),
+            };
+            let mut flt: f64 = dstr.parse().unwrap();
+            if flt != 0.0 {
+                // Avoid negative zeroes; only multiply sign by nonzeroes.
+                flt *= sign;
+            }
+            AstNode::DoublePrecisionFloat(flt)
+        }
+        Rule::expr => build_ast_from_expr(pair),
+        Rule::ident => AstNode::Ident(String::from(pair.as_str())),
+        unknown_term => panic!("Unexpected term: {:?}", unknown_term),
+    }
 }
