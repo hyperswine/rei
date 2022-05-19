@@ -90,7 +90,7 @@ yield_stmt = {
 // ---------
 
 if_stmt = {
-    
+    if_keyword ~ expr
 }
 
 // ----------
@@ -102,8 +102,15 @@ function_def = {
     | standard_function_stmt
 }
 
+// just a let/const but function like
 anonymous_function_stmt = {
+    "(" ~ param_list ~ ")"
+}
 
+// note: function_body is basically any_statement*
+// but apparently no recursive in PEG
+standard_function_stmt = {
+    fn_keyword ~ ident ~ "(" ~ param_list ~ ")" ~ "{" ~ function_body ~ "}"
 }
 
 // ----------

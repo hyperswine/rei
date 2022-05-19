@@ -28,7 +28,7 @@ pub fn parse(source: &str) -> Result<Vec<AstNode>, Error<Rule>> {
     for pair in pairs {
         match pair.as_rule() {
             Rule::expr => {
-                ast.push(Print(Box::new(build_ast_from_expr(pair))));
+                ast.push();
             }
             _ => {}
         }
