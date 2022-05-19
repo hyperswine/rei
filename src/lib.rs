@@ -1,38 +1,59 @@
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
-
-use pest::error::Error;
-use pest::Parser;
-use std::ffi::CString;
-
-#[derive(Parser)]
-#[grammar = "grammar/rei.pest"]
-struct ReiParser;
-
-#[derive(PartialEq, Debug, Clone)]
-pub enum AstNode {
-    Print(Box<AstNode>),
-    Integer(i32),
-    Float(f64),
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+enum Token {
+    Bool(bool),
+    Num(String),
+    Str(String),
+    // operators
+    Op(String),
+    // semicolons, etc
+    Ctrl(char),
     Ident(String),
-    Str(CString),
+    Fn,
+    Let,
+    Const,
+    If,
+    Else,
+    For,
+    While,
+    // use == mod
+    Use,
 }
 
-use self::AstNode::*;
+/*
+Order of precedence (overloadable operators)
+Order of precedence matters quite a lot and should be predictable
 
-pub fn parse(source: &str) -> Result<Vec<AstNode>, Error<Rule>> {
-    let mut ast = vec![];
+COMMON
+()
+::
+.
+*
+/
++
+-
 
-    let pairs = ReiParser::parse(Rule::program, source)?;
-    for pair in pairs {
-        match pair.as_rule() {
-            Rule::expr => {
-                ast.push();
-            }
-            _ => {}
-        }
-    }
+*=
+/=
++=
+-=
 
-    Ok(ast)
-}
+**
+++
+--
+
+COMPARISON
+||
+&&
+<
+>
+..
+
+LIST
+,
+|
+
+EQUIVALENCE
+==
+*/
+
+// NOTE: | means bitwise OR when using numeric. On other types, its free to overload
