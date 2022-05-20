@@ -1,38 +1,236 @@
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
+use logos::Logos;
 
-use pest::error::Error;
-use pest::Parser;
-use std::ffi::CString;
+#[derive(Logos, Debug, PartialEq)]
+pub enum Token {
+    #[token("//")]
+    SinglelineComment,
+    // mainly for doc comments, e.g. at the top of the file
+    #[token("#")]
+    HashComment,
+    #[token("/*")]
+    MultilineCommentBegin,
+    #[token("*/")]
+    MultilineCommentEnd,
 
-#[derive(Parser)]
-#[grammar = "grammar/rei.pest"]
-struct ReiParser;
+    #[token("mod")]
+    Module,
+    #[token("namespace")]
+    Namespace,
+    #[token("use")]
+    Use,
+    #[token("class")]
+    Class,
+    #[token("fn")]
+    Function,
+    #[token("enum")]
+    Enum,
+    #[token("self")]
+    SelfKeyword,
+    #[token("macro")]
+    Macro,
+    #[token("let")]
+    Let,
+    #[token("const")]
+    Const,
+    #[token("static")]
+    Static,
+    #[token("new")]
+    New,
+    #[token("unsafe")]
+    Unsafe,
+    #[token("super")]
+    Super,
 
-#[derive(PartialEq, Debug, Clone)]
-pub enum AstNode {
-    Print(Box<AstNode>),
-    Integer(i32),
+    #[token("if")]
+    If,
+    #[token("else")]
+    Else,
+    #[token("return")]
+    Return,
+    #[token("break")]
+    Break,
+    #[token("while")]
+    While,
+    #[token("for")]
+    For,
+    #[token("match")]
+    Match,
+    #[token("continue")]
+    Continue,
+    #[token("loop")]
+    Loop,
+    #[token("yield")]
+    Yield,
+    #[token("case")]
+    Case,
+    #[token("default")]
+    Default,
+    #[token("switch")]
+    Switch,
+
+    // Conditions
+    #[token("true")]
+    True,
+    #[token("false")]
+    False,
+    #[token("and")]
+    And,
+    #[token("or")]
+    Or,
+    #[token("not")]
+    Not,
+    #[token("is")]
+    Is,
+    #[token("as")]
+    As,
+    #[token("in")]
+    In,
+
+    // @
+    #[token("@")]
+    OperatorAnnotation,
+    // Usually in annotations and lists/tuples
+    #[token(",")]
+    OperatorComma,
+
+    // Context sensitive
+    #[token("(")]
+    OperatorBracketLeft,
+    #[token(")")]
+    OperatorBracketRight,
+    #[token("{")]
+    OperatorCurlyBraceLeft,
+    #[token("}")]
+    OperatorCurlyBraceRight,
+
+    // Compiler directive on f-strings
+    #[token("$")]
+    OperatorDollarSign,
+
+    // OVERLOADABLE or SPECIFIC
+    #[token("+")]
+    OperatorPlus,
+    #[token("-")]
+    OperatorMinus,
+    #[token("/")]
+    OperatorLeftSlash,
+    #[token("*")]
+    OperatorStar,
+    // LArrow [id] RArrow = <id> which means Option<id>
+    #[token("<")]
+    OperatorLeftArrow,
+    #[token(">")]
+    OperatorRightArrow,
+    #[token("=")]
+    OperatorEquals,
+    #[token("==")]
+    OperatorIdentity,
+    #[token("!")]
+    OperatorExclamation,
+    #[token("?")]
+    OperatorQuestion,
+    #[token(".")]
+    OperatorDot,
+    // mainly for range based loops
+    #[token("..")]
+    OperatorDoubleDot,
+    #[token(":")]
+    OperatorColon,
+    #[token("::")]
+    OperatorDoubleColon,
+    #[token("'")]
+    OperatorSingleQuote,
+    #[token("\"")]
+    OperatorDoubleQuote,
+    #[token("^")]
+    OperatorUpArrow,
+
+    // SPECIAL: label deref
+    // #[token("\\")]
+    // OperatorRightSlash,
+    #[regex("[a-zA-Z]+")]
+    Identifier,
+    #[regex("[0-9]+")]
+    Number,
+    #[regex("-?[0-9]+\\.[0-9]+", |lex| lex.slice().parse())]
     Float(f64),
-    Ident(String),
-    Str(CString),
+    // For ascii printable "strings" (without backslash)
+    // I dont think it works for \escaped " quotes. \\ doesnt work
+    #[regex("\"(?:[^\"]|\\.)*\"")]
+    DoubleQuotedString,
+    // For 'strings'
+    #[regex("'(?:[^\"]|\\.)*'")]
+    SingleQuotedString,
+    // For `strings`
+    #[regex("`(?:[^\"]|\\.)*`")]
+    DashQuotedString,
+    // Logos requires one token variant to handle errors,
+    // We can also use this variant to define whitespace,
+    // or any other matches we wish to skip.
+    #[error]
+    #[regex(r"[ \t\n\f]+", logos::skip)]
+    Error,
 }
 
-use self::AstNode::*;
+/*
+Order of precedence (overloadable operators)
+Order of precedence matters quite a lot and should be predictable
 
-pub fn parse(source: &str) -> Result<Vec<AstNode>, Error<Rule>> {
-    let mut ast = vec![];
+COMMON
+()
+::
+.
+*
+/
++
+-
 
-    let pairs = ReiParser::parse(Rule::program, source)?;
-    for pair in pairs {
-        match pair.as_rule() {
-            Rule::expr => {
-                ast.push();
-            }
-            _ => {}
-        }
+*=
+/=
++=
+-=
+
+**
+++
+--
+
+COMPARISON
+||
+&&
+<
+>
+..
+
+LIST
+,
+|
+
+EQUIVALENCE
+==
+*/
+
+// NOTE: | means bitwise OR when using numeric. On other types, its free to overload
+
+pub fn tokenise(file: &str) -> Vec<(Token, std::ops::Range<usize>)> {
+    let mut tokens = Token::lexer(file);
+
+    tokens.spanned().collect()
+}
+
+pub fn print_tokens(tokens: &Vec<(Token, std::ops::Range<usize>)>) {
+    for token in tokens {
+        print!("token = {:?}", token.0);
+        println!(" range = {:?}", token.1);
     }
-
-    Ok(ast)
 }
+
+fn parse(tokens: &[Token]) {
+    for token in tokens {
+        // no backtracking. LR 1
+        // https://en.wikipedia.org/wiki/Canonical_LR_parser#Constructing_LR(1)_parsing_tables
+
+        // https://en.wikipedia.org/wiki/Recursive_descent_parser algorithm
+    }
+}
+
+fn recursive_descent_parser() {}
