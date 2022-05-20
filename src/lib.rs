@@ -1,6 +1,6 @@
 use logos::Logos;
 
-#[derive(Logos, Debug, PartialEq, Hash)]
+#[derive(Logos, Debug, PartialEq)]
 pub enum Token {
     #[token("//")]
     SinglelineComment,
@@ -148,15 +148,22 @@ pub enum Token {
     // SPECIAL: label deref
     // #[token("\\")]
     // OperatorRightSlash,
-
     #[regex("[a-zA-Z]+")]
     Identifier,
     #[regex("[0-9]+")]
     Number,
-    // ? I have no idea if this would work
-    // #[regex(r"\d*\.*+\d+")]
-    // Fraction,
-
+    #[regex("-?[0-9]+\\.[0-9]+", |lex| lex.slice().parse())]
+    Float(f64),
+    // For ascii printable "strings" (without backslash)
+    // I dont think it works for \escaped " quotes. \\ doesnt work
+    #[regex("\"(?:[^\"]|\\.)*\"")]
+    DoubleQuotedString,
+    // For 'strings'
+    #[regex("'(?:[^\"]|\\.)*'")]
+    SingleQuotedString,
+    // For `strings`
+    #[regex("`(?:[^\"]|\\.)*`")]
+    DashQuotedString,
     // Logos requires one token variant to handle errors,
     // We can also use this variant to define whitespace,
     // or any other matches we wish to skip.
@@ -204,6 +211,19 @@ EQUIVALENCE
 
 // NOTE: | means bitwise OR when using numeric. On other types, its free to overload
 
+pub fn tokenise(file: &str) -> Vec<(Token, std::ops::Range<usize>)> {
+    let mut tokens = Token::lexer(file);
+
+    tokens.spanned().collect()
+}
+
+pub fn print_tokens(tokens: &Vec<(Token, std::ops::Range<usize>)>) {
+    for token in tokens {
+        print!("token = {:?}", token.0);
+        println!(" range = {:?}", token.1);
+    }
+}
+
 fn parse(tokens: &[Token]) {
     for token in tokens {
         // no backtracking. LR 1
@@ -213,6 +233,4 @@ fn parse(tokens: &[Token]) {
     }
 }
 
-fn recursive_descent_parser() {
-
-}
+fn recursive_descent_parser() {}
