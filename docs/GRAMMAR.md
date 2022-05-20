@@ -15,13 +15,33 @@ content: stmt*
 // STATEMENTS
 // -------------
 
-stmt: function_def | class_def | data_def | variable_def | operator_stmt | if_stmt | for_stmt | while_stmt | return_stmt | trivial_stmt
+stmt: function_def | class_def | data_def | variable_def | operator_stmt | if_stmt | for_stmt | while_stmt | return_stmt | trivial_stmt | use_stmt
 
 return_stmt: "return" ~ [expr]
 
 trivial_stmt: "yield" | "continue" | "break"
 
 variable_def: ("let" ~ ident ~ "=" ~ expr) | ("let" ~ expr ~ "=" ~ expr)
+
+// same as mod something::something
+use_stmt: "use" ~ ("::" ~ ident)*
+
+// Function Statements
+
+function_def: {
+  anonymous_function_stmt | standard_function_stmt
+}
+
+// just a let/const but function like
+anonymous_function_stmt: {
+  "(" ~ param_list ~ ")" ~ single_or_scoped_block
+}
+
+// note: function_body is basically any_statement*
+// but apparently no left recursive
+standard_function_stmt: {
+  fn_keyword ~ ident ~ "(" ~ param_list ~ ")" ~ "{" ~ stmt* ~ "}"
+}
 
 // Control Statements
 
@@ -30,10 +50,10 @@ if_stmt: {
   if_block ~ (elif_block* ~ [else_block])
 }
 
-if_block: "if" ~ expr ~ single_or_scoped_block
+if_block: "if" ~ stmt* ~ single_or_scoped_block
 
 elif_block: {
-  "elif" ~ expr ~ if_block
+  "elif" ~ stmt* ~ if_block
 }
 
 else_block: {
@@ -54,7 +74,7 @@ for_expr_cond: {
 }
 
 single_or_scoped_block: {
-  scoped_block | stmt
+  scoped_block | stmt*
 }
 
 // -------------

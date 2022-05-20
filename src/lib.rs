@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, process::exit};
 
 use logos::Logos;
 
@@ -263,6 +263,14 @@ impl ParseTree {
     pub fn new(name: String, content: ParseNode<InternalNodeData>) -> Self {
         Self { name, content }
     }
+
+    /// Insert a node as a specific parse node's child
+    /// Would be the last child
+    fn insert_node(&mut self, parent: &ParseNode<InternalNodeData>) {
+        // BFS for the parent
+        // recursively call children() until it returns a non negative
+        // then on that node's ith child, push the node
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -341,16 +349,79 @@ COOL PARSING ALGOS:
 */
 
 /// Parse those tokens boy
-fn parse(filename: &str, tokens: &[Token]) {
-    // create tree
+/// Dont need ranges for increment lookahead. Just use token seq directly
+/// Though good to have for error messages
+fn parse(filename: &str, tokens: &[Token]) -> ParseTree {
+    // Create tree
     let content_node = ParseNode::new_internal_node("".to_owned(), "".to_owned(), vec![]);
     let ast = ParseTree::new(filename.to_owned(), content_node);
 
-    for token in tokens {
-        // priority grammar descent
+    // DEFINE FUNCTIONS (Leaf -> Root)
+    let mut lookahead = 0;
 
+    // Match function
+    let mut match_token = |t: Token| {
+        if t == tokens[lookahead] {
+            lookahead += 1;
+        }
+    };
 
-    }
+    let mut use_stmt = || {
+        // use -> ident
+        if tokens[lookahead] == Token::Use {
+            // 1 ident
+            if tokens[lookahead + 1] == Token::Identifier {
+                // 0 or more :: ident
+                let mut i = 2;
+                while tokens[lookahead + i] == Token::OperatorDoubleColon
+                    && tokens[lookahead + i + 1] == Token::OperatorDoubleColon
+                {
+                    i += 2;
+                }
+                // push AST
+
+                return true;
+            } else {
+                // error!
+                println!("Error! Undefined use expression");
+                exit(1);
+            }
+        }
+        false
+    };
+
+    // * return true if possible. Just return true if one of them is right
+    let mut stmt = || {
+        // use statement
+        if use_stmt() {
+            return true;
+        }
+
+        // class def
+
+        // function def
+
+        // data def
+
+        // variable def
+
+        // control def
+
+        // SKIP any Error token and Comment tokens
+
+        // no more statements
+        false
+    };
+
+    // Start symbol
+    let mut content = || {
+        // zero or more statements
+        while stmt() {
+            println!("Found a statement")
+        }
+    };
+
+    content();
+
+    ast
 }
-
-
