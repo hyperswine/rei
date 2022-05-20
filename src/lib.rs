@@ -1,16 +1,16 @@
+use std::collections::HashMap;
+
 use logos::Logos;
 
 #[derive(Logos, Debug, PartialEq)]
 pub enum Token {
-    #[token("//")]
+    #[regex("//.*")]
     SinglelineComment,
     // mainly for doc comments, e.g. at the top of the file
-    #[token("#")]
+    #[regex("#.*")]
     HashComment,
-    #[token("/*")]
-    MultilineCommentBegin,
-    #[token("*/")]
-    MultilineCommentEnd,
+    #[regex("/[\\*]([^\\*]|([\\*][^/]))*[\\*]+/")]
+    MultilineComment,
 
     #[token("mod")]
     Module,
@@ -164,12 +164,13 @@ pub enum Token {
     // For `strings`
     #[regex("`(?:[^\"]|\\.)*`")]
     DashQuotedString,
+
     // Logos requires one token variant to handle errors,
     // We can also use this variant to define whitespace,
     // or any other matches we wish to skip.
     #[error]
     #[regex(r"[ \t\n\f]+", logos::skip)]
-    Error,
+    Whitespace,
 }
 
 /*
@@ -222,6 +223,23 @@ pub fn print_tokens(tokens: &Vec<(Token, std::ops::Range<usize>)>) {
         print!("token = {:?}", token.0);
         println!(" range = {:?}", token.1);
     }
+}
+
+// https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm symbol table design
+
+// ident : attr
+struct Symbol<'sym> {
+    ident: &'sym str,
+    attr: &'sym str,
+}
+
+struct Namespace<'a> {
+    elements: HashMap<&'a str, &'a str>,
+}
+
+struct SymbolTable<'a> {
+    // a symbol must be uniquely identified within its scope
+    symbols: HashMap<&'a str, Namespace<'a>>,
 }
 
 fn parse(tokens: &[Token]) {

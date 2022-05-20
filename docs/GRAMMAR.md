@@ -5,9 +5,19 @@ Pretty much based on scala. Pest cant parse EBNF since it is PEG. So use PEG ins
 ## PEG
 
 ```rust
-stmt = expr
+stmt: function_def | class_def | data_def | variable_def | operator_stmt | if_stmt | for_stmt | while_stmt | return_stmt | trivial_stmt
 
-expr = assignment_expr | 
+return_stmt: "return" ~ [expr]
+
+trivial_stmt: "yield" | "continue" | "break"
+
+variable_def: ("let" ~ ident ~ "=" ~ expr) | ("let" ~ expr ~ "=" ~ expr)
+
+expr: ["+"|"-"] ~ term ~ {op ~ term}
+
+term: ident | number | "(" expr ")"
+
+op: "<" | ...
 ```
 
 ## Types of expressions
@@ -18,9 +28,17 @@ But unlike rust we dont have semicolons and instead rely on whitespace (default 
 
 So rei's keywords and design allows us to separate between them. Cues like `let` should delineate a statement.
 
+All statements are expressions. All expressions evaluate to a value.
+
 ## Types of statements
 
-- macro define statements
 - function definition statements
-- class definition statements
-- variable definition statements
+  - macro define statements -> core library function
+  - anonymous function defines -> `() {}` that can be assigned
+  - lambda function defines -> `[]() {}`
+- class definition statements -> `class ident() {}`
+- data definition statements -> `data ident {}`
+- variable definition statements -> `let ident = expr`, `const ident = expr`
+
+<!-- ? Maybe not actually -->
+<!-- - operator statements -> `expr op expr`, `ident op expr`, `expr op ident` based on l/r-value semantics -->
