@@ -279,25 +279,44 @@ pub struct RootData {
     name: String,
 }
 
+const DEFAULT_NAME: &'static str = "content";
+
 impl RootData {
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_owned(),
         }
     }
+
+    pub fn new_default() -> Self {
+        Self {
+            name: DEFAULT_NAME.to_owned(),
+        }
+    }
 }
 
+// Do not expose to main
 impl ParseTree {
-    fn new_leaf(lex_value: String) -> Self {
-        Self::Leaf(LeafData { lex_value })
+    fn new_leaf(lex_value: &str) -> Self {
+        Self::Leaf(LeafData {
+            lex_value: lex_value.to_owned(),
+        })
     }
 
     fn new_internal(data: InternalData, children: Vec<ParseTree>) -> Self {
         Self::Internal(data, children)
     }
 
+    fn new_default_internal() -> Self {
+        Self::Internal(InternalData::new_default(), vec![])
+    }
+
     fn new_root(name: &str, children: Vec<ParseTree>) -> Self {
         Self::Root(RootData::new(name), children)
+    }
+
+    fn new_default_root() -> Self {
+        Self::Root(RootData::new_default(), vec![])
     }
 
     /// Insert a node (subtree) as this node's child
@@ -325,15 +344,19 @@ pub struct InternalData {
 }
 
 impl InternalData {
-    pub fn new(
-        inherited_attr: String,
-        synthesized_attr: String,
-        children: Vec<InternalData>,
-    ) -> Self {
+    pub fn new(inherited_attr: &str, synthesized_attr: &str, children: Vec<InternalData>) -> Self {
         Self {
-            inherited_attr,
-            synthesized_attr,
+            inherited_attr: inherited_attr.to_owned(),
+            synthesized_attr: synthesized_attr.to_owned(),
             children,
+        }
+    }
+
+    pub fn new_default() -> Self {
+        Self {
+            inherited_attr: "".to_owned(),
+            synthesized_attr: "".to_owned(),
+            children: vec![],
         }
     }
 }
@@ -358,6 +381,9 @@ COOL PARSING ALGOS:
     /www.geeksforgeeks.org/recursive-descent-parser/
 */
 
+// BASIC IDEA:
+// For each level, build a node, call any recursive functions then add that to your current node. Then return your node
+
 /// Parse those tokens boy
 /// Dont need ranges for increment lookahead. Just use token seq directly
 /// Though good to have for error messages
@@ -381,6 +407,9 @@ fn parse<T>(tokens: &[Token]) -> ParseTree {
     };
 
     let mut use_stmt = || {
+        // entry
+        let mut res = ParseTree::new_internal(InternalData::new_default(), vec![]);
+
         // use -> ident
         if tokens[lookahead] == Token::Use {
             // 1 ident
@@ -391,23 +420,38 @@ fn parse<T>(tokens: &[Token]) -> ParseTree {
                     && tokens[lookahead + i + 1] == Token::OperatorDoubleColon
                 {
                     i += 2;
-                }
-                // push AST
+                    // TODO: build leaf nodes for each token and add to res
+                    // use symbol table if needed to link the attrs with the `Ident` type of each token. I THINK WE NEED A UNIQUE ID with each token so symboltable {id: Symbol}
+                    // something like SymbolTable.search(token_id)
 
-                return true;
+                    let leaf = ParseTree::new_leaf("");
+                    res.insert_child(leaf);
+                }
+
+                // * push res
+
+                return Some(res);
             } else {
                 // error! stop program. Could also panic or try to resolve it by converting chars (push error onto stack). But not really bothered to do that
                 panic!("Error! Undefined `use` expression");
             }
         }
-        false
+        None
     };
 
-    // * return true if possible. Just return true if one of them is right
+    // * return (true, subtree) if possible. Just return true if one of them is right. Otherwise (false, ()). Or just Option<ParseTree>
     let mut stmt = || {
+        // stmt entry
+        // * should prob have a ParseTree::new_internal_default()
+        let mut res = ParseTree::new_internal(InternalData::new_default(), vec![]);
+
         // use statement
-        if use_stmt() {
-            return true;
+        match use_stmt() {
+            Some(r) => {
+                res.insert_child(r);
+                return Some(res);
+            }
+            None => return None,
         }
 
         // class def
@@ -423,14 +467,20 @@ fn parse<T>(tokens: &[Token]) -> ParseTree {
         // SKIP any Error token and Comment tokens
 
         // no more statements
-        false
+        None
     };
 
     // Start symbol
     let mut content = || {
         // zero or more statements
-        while stmt() {
-            println!("Found a statement")
+        while let res = stmt() {
+            match res {
+                Some(r) => {
+                    println!("Found a statement")
+                    // * add as a child
+                }
+                None => break,
+            }
         }
     };
 
