@@ -8,6 +8,9 @@ In rei, expressions and statements have a pretty blurry line. The compiler is ne
 
 Note there is an implicit `filename` included in the AST generated. Its basically any valid filename on your OS and reic that doesnt include certain special chars.
 
+- Each production is associated with an internal node
+- Each terminal production is associated with a leaf node
+
 ```rust
 content: stmt* 
 

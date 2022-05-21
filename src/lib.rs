@@ -248,6 +248,12 @@ struct SymbolTable<'a> {
     symbols: HashMap<&'a str, Namespace<'a>>,
 }
 
+
+// enum ParseTree<T> {
+//     Leaf(T),
+//     Internal(Vec<ParseTree<T>>)
+// }
+
 // NOTE: L-attr SDT with inh and synth attr
 
 // Assumes tree has at least two nodes that is the filename and content
