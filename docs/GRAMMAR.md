@@ -46,6 +46,45 @@ standard_function_stmt: {
   fn_keyword ~ ident ~ "(" ~ param_list ~ ")" ~ "{" ~ stmt* ~ "}"
 }
 
+// ------------
+// LEFT RECURSION REMOVAL
+// ------------
+
+// most of stmt, except the bad parts and a way to not recurse onto itself
+allowed_scoped_statements: {
+  function_def | class_def | data_def | variable_def | operator_stmt | if_stmt | for_stmt | while_stmt | return_stmt | trivial_stmt | use_stmt
+}
+
+// DATA/Class field statement
+
+class_field_stmt: {
+  "let"|"const" ~ ident ~ ":" ~ ident
+}
+
+scoped_class_body: {
+  "{" ~
+    (class_field_stmt|allowed_scoped_statements)*
+  ~ "}"
+}
+
+data_field_stmt: {
+  ident ~ ":" ~ ident
+}
+
+field_scoped_block: {
+  "{" ~ data_field_stmt* ~ "}"
+}
+
+// Class Statements
+
+class_def: {
+  "class" ~ scoped_class_body
+}
+
+data_def: {
+  "data" ~ field_scoped_block
+}
+
 // Control Statements
 
 // should technically be a boolean expr, should be parseable

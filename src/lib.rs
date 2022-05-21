@@ -17,44 +17,75 @@ use std::sync::Mutex;
 
 // Symbols also store comment or metacode info. Reidoc simply takes all hash comment lines and associates them with symbols. I guess I can also go for multiline hash comments
 
+// Remember to derive serde for all structures
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum SymbolType {
+    Function,
+    Class,
+    Data,
+    Variables,
+}
+
 /// The basic foundation for a complex program
 /// Can be used to "trickle up" for parse nodes
 /// A symbol is associated with a token (lexed) and is non trivial. E.g., not an operator or keyword. An identifier, number, float, double quoted string, single quoted string, enhanced string, document comments
-pub struct Symbol<'sym> {
-    lex_val: &'sym str,
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Symbol {
+    symbol_type: SymbolType,
+    lex_val: String,
 }
 
-impl<'sym> Symbol<'sym> {
-    pub fn new(lex_val: &'sym str) -> Self {
-        Self { lex_val }
-    }
-}
-
-impl<'sym> Default for Symbol<'sym> {
-    fn default() -> Self {
+impl Symbol {
+    pub fn new(symbol_type: SymbolType, lex_val: String) -> Self {
         Self {
-            lex_val: Default::default(),
+            symbol_type,
+            lex_val,
         }
     }
 }
 
-pub struct Namespace<'a> {
-    elements: HashMap<&'a Token, &'a Symbol<'a>>,
+type Identifier = String;
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Namespace {
+    elements: HashMap<Identifier, Symbol>,
 }
 
-impl<'a> Namespace<'a> {
-    pub fn new(elements: HashMap<&'a Token, &'a Symbol<'a>>) -> Self {
+impl Namespace {
+    pub fn new(elements: HashMap<Identifier, Symbol>) -> Self {
         Self { elements }
     }
 
-    pub fn add_symbol(&mut self, token: &'a Token, lex_val: &'a str) {
-        // this is the issue. Maybe we dont need a symtab
-        // you have to get rid of the (f64) and any other potentially unhashable stuff. Would be good if the token itself can mostly be used without too much trouble. Or maybe Extras
-        // self.elements.insert(token, &Symbol::new(lex_val));
+    pub fn get_symbol(&mut self, identifier: &str) -> &mut Symbol {
+        self.elements
+            .get_mut(identifier)
+            .unwrap_or_else(|| panic!("Symbol doesnt exist"))
+    }
+
+    pub fn add_symbol(
+        &mut self,
+        identifier: &str,
+        symbol_type: SymbolType,
+        lex_val: &str,
+    ) -> Result<&Symbol, &'static str> {
+        // check if symbol already exists in the namespace
+        match self.elements.get(identifier) {
+            Some(_) => Err("Symbol already exists"),
+            None => {
+                let r = Symbol::new(symbol_type, lex_val.to_owned());
+
+                self.elements.insert(identifier.to_owned(), r);
+
+                let res = self.elements.get(identifier).unwrap();
+
+                Ok(res)
+            }
+        }
     }
 }
 
-impl<'a> Default for Namespace<'a> {
+impl Default for Namespace {
     fn default() -> Self {
         Self {
             elements: Default::default(),
@@ -64,31 +95,59 @@ impl<'a> Default for Namespace<'a> {
 
 /// Symbol table is filled in by the lexer automatically
 /// As callbacks for each token
-pub struct SymbolTable<'a> {
+pub struct SymbolTable {
     // a symbol must be uniquely identified within its scope
-    symbols: HashMap<&'a str, Namespace<'a>>,
+    namespaces: HashMap<String, Namespace>,
 }
 
-impl<'a> SymbolTable<'a> {
-    pub fn new(symbols: HashMap<&'a str, Namespace<'a>>) -> Self {
-        Self { symbols }
+impl SymbolTable {
+    pub fn new(namespaces: HashMap<String, Namespace>) -> Self {
+        Self { namespaces }
     }
 
-    pub fn add_namespace(&mut self, name: &'a str) {
-        self.symbols.insert(name, Namespace::default());
+    // I think parser or lexer needs to add the namespaces properly
+    // Or just have a generic enum SymbolTable
+    // Then gets serialised as usual
+    pub fn add_namespace(&mut self, name: &str) {
+        match self
+            .namespaces
+            .insert(name.to_owned(), Namespace::default())
+        {
+            Some(ns) => panic!(
+                "Namespace {} already exists, are you sure it was at the right level?",
+                name
+            ),
+            None => {}
+        }
+    }
+
+    pub fn insert_value(
+        &mut self,
+        namespace: &str,
+        identifier: &str,
+        symbol_type: SymbolType,
+        lex_val: &str,
+    ) -> &Symbol {
+        match self.namespaces.get_mut(namespace) {
+            Some(ns) => match ns.add_symbol(identifier, symbol_type, lex_val) {
+                Ok(symbol) => symbol,
+                Err(msg) => panic!("{} in namespace {}", msg, namespace),
+            },
+            None => panic!("Namespace doesnt exist, did you make it first?"),
+        }
     }
 }
 
-impl<'a> Default for SymbolTable<'a> {
+impl Default for SymbolTable {
     fn default() -> Self {
         Self {
-            symbols: Default::default(),
+            namespaces: Default::default(),
         }
     }
 }
 
 lazy_static! {
-    static ref SYMTAB: Mutex<SymbolTable<'static>> = Mutex::new(SymbolTable::default());
+    static ref SYMTAB: Mutex<SymbolTable> = Mutex::new(SymbolTable::default());
 }
 
 // Use Extras to store extra symbol info. Instead of a symbol table
@@ -320,14 +379,10 @@ pub fn tokenise(file: &str) -> Vec<(Token, std::ops::Range<usize>)> {
     let mut str_ = tokens.source();
     log::info!("====SOURCE====\n{}\n==============", str_);
 
-    // Generating random labels for anonymous scoped blocks
+    // Generating labels for scoped blocks. In the end, you cant use namespaces because ELF doesnt have an idea of what that is. Later just generate random names for all the labels
     // 1. collect all the explicitly labelled blocks and add them to the symtab
-    // 2. for each anonymous block, generate a random identifier for them. Regenerating them if its already exists in the namespace: Anonymous
-    // NOTE: ELF64 defines byte-quad (8-128) width vals. Anything bigger or structured (like class/data) will have to be a pointer to the actual part of the data section. Its layout doesnt have to be specified since the code should deref them at the right offsets
-    // I think most symbols can just be pointer to make it easier
 
     let res = tokens.spanned().collect();
-
 
     res
 }

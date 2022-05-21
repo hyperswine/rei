@@ -142,3 +142,24 @@ For 'immediates'? Like `if x = 0`. You can just compile that directly to `beq` n
 That scope then becomes live. Constructs that have scope include: `file`, `class`, `function`, `if_block`, `for_block`, `while_block`. Technically all of these use `scoped_block`. To properly ID them. We need to generate some label for that IF/ELSE/FOR/WHILE statement. Then all local variable lookups with `load __label_identifier`. I guess we can just assign some random namee for the anonymous scopes.
 
 IDK when to randomly generate the name. Lexing kinda makes sense. But if the if statement is wrong... But that would be too bad. We need to refer to it while building the parse tree for it.
+
+```rust
+if x {
+    // push the immediate onto the stack
+    let y = 0
+    // Int
+    // push_word 0x0
+    y = 1
+    // pop_word reg0
+    // load_immediate reg0 0x1
+
+    class C {
+        y: Int
+    }
+
+    // when creating heap alloc'd variables
+    // then the .text/data itself doesnt matter
+    // just push the memory address of the var onto the stack
+    let z = new C()
+}
+```
