@@ -131,3 +131,14 @@ A: data {
 
 }
 ```
+
+## Symbol Table
+
+So we want to store a bunch of entries [ident : value] per scope.
+For `fn ident`, `class ident`, `let ident`. For functions and classes, we can store a pointer to the data. And then just write the data in the data section.
+
+For 'immediates'? Like `if x = 0`. You can just compile that directly to `beq` no. But if that gets assigned, like `let x = 0` or `if let x = 0`. Then `x` is a live variable (always is). Which although technically just use registers and some imm instruction. Its prob best to treat it as a full variable.
+
+That scope then becomes live. Constructs that have scope include: `file`, `class`, `function`, `if_block`, `for_block`, `while_block`. Technically all of these use `scoped_block`. To properly ID them. We need to generate some label for that IF/ELSE/FOR/WHILE statement. Then all local variable lookups with `load __label_identifier`. I guess we can just assign some random namee for the anonymous scopes.
+
+IDK when to randomly generate the name. Lexing kinda makes sense. But if the if statement is wrong... But that would be too bad. We need to refer to it while building the parse tree for it.

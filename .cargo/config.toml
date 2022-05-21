@@ -1,0 +1,4 @@
+[alias]
+
+[env]
+RUST_LOG="info"

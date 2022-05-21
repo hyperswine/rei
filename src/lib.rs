@@ -2,6 +2,12 @@ use std::{collections::HashMap, process::exit};
 
 use logos::Logos;
 
+use std::mem::Discriminant;
+
+use lazy_static::lazy_static;
+
+use std::sync::Mutex;
+
 // ---------------
 // LEXING
 // ---------------
@@ -9,14 +15,51 @@ use logos::Logos;
 // Symbols
 // ident : attr
 
+// Symbols also store comment or metacode info. Reidoc simply takes all hash comment lines and associates them with symbols. I guess I can also go for multiline hash comments
+
 /// The basic foundation for a complex program
+/// Can be used to "trickle up" for parse nodes
+/// A symbol is associated with a token (lexed) and is non trivial. E.g., not an operator or keyword. An identifier, number, float, double quoted string, single quoted string, enhanced string, document comments
 pub struct Symbol<'sym> {
-    ident: &'sym str,
-    attr: &'sym str,
+    lex_val: &'sym str,
+}
+
+impl<'sym> Symbol<'sym> {
+    pub fn new(lex_val: &'sym str) -> Self {
+        Self { lex_val }
+    }
+}
+
+impl<'sym> Default for Symbol<'sym> {
+    fn default() -> Self {
+        Self {
+            lex_val: Default::default(),
+        }
+    }
 }
 
 pub struct Namespace<'a> {
-    elements: HashMap<&'a str, &'a str>,
+    elements: HashMap<&'a Token, &'a Symbol<'a>>,
+}
+
+impl<'a> Namespace<'a> {
+    pub fn new(elements: HashMap<&'a Token, &'a Symbol<'a>>) -> Self {
+        Self { elements }
+    }
+
+    pub fn add_symbol(&mut self, token: &'a Token, lex_val: &'a str) {
+        // this is the issue. Maybe we dont need a symtab
+        // you have to get rid of the (f64) and any other potentially unhashable stuff. Would be good if the token itself can mostly be used without too much trouble. Or maybe Extras
+        // self.elements.insert(token, &Symbol::new(lex_val));
+    }
+}
+
+impl<'a> Default for Namespace<'a> {
+    fn default() -> Self {
+        Self {
+            elements: Default::default(),
+        }
+    }
 }
 
 /// Symbol table is filled in by the lexer automatically
@@ -26,7 +69,30 @@ pub struct SymbolTable<'a> {
     symbols: HashMap<&'a str, Namespace<'a>>,
 }
 
-// TODO: callbacks on identifiers and numbers to build a symtab
+impl<'a> SymbolTable<'a> {
+    pub fn new(symbols: HashMap<&'a str, Namespace<'a>>) -> Self {
+        Self { symbols }
+    }
+
+    pub fn add_namespace(&mut self, name: &'a str) {
+        self.symbols.insert(name, Namespace::default());
+    }
+}
+
+impl<'a> Default for SymbolTable<'a> {
+    fn default() -> Self {
+        Self {
+            symbols: Default::default(),
+        }
+    }
+}
+
+lazy_static! {
+    static ref SYMTAB: Mutex<SymbolTable<'static>> = Mutex::new(SymbolTable::default());
+}
+
+// Use Extras to store extra symbol info. Instead of a symbol table
+// Although it would still be good to build when generating IR and assembly
 // And to end lexing quickly if the same symbol name is present in the same scope
 // So if Hashmap.insert("something") would be off, exit(1)
 
@@ -40,6 +106,8 @@ pub enum Token {
     HashComment,
     #[regex("/[\\*]([^\\*]|([\\*][^/]))*[\\*]+/")]
     MultilineComment,
+    #[regex("#[\\*]([^\\*]|([\\*][^/]))*[\\*]+#")]
+    MultilineHashComment,
 
     #[token("mod")]
     Module,
@@ -145,7 +213,7 @@ pub enum Token {
     OperatorLeftSlash,
     #[token("*")]
     OperatorStar,
-    // LArrow [id] RArrow = <id> which means Option<id>
+    // LArrow Ident RArrow = <id> which means Option<id>
     #[token("<")]
     OperatorLeftArrow,
     #[token(">")]
@@ -177,10 +245,12 @@ pub enum Token {
     // SPECIAL: label deref
     // #[token("\\")]
     // OperatorRightSlash,
+
+    // slice().parse() should be good for most things?
     #[regex("[a-zA-Z]+")]
     Identifier,
-    #[regex("[0-9]+")]
-    Number,
+    #[regex("[-][0-9]+", |lex| lex.slice().parse())]
+    Int(i64),
     #[regex("-?[0-9]+\\.[0-9]+", |lex| lex.slice().parse())]
     Float(f64),
     // For ascii printable "strings" (without backslash)
@@ -242,15 +312,30 @@ EQUIVALENCE
 // NOTE: | means bitwise OR when using numeric. On other types, its free to overload
 
 pub fn tokenise(file: &str) -> Vec<(Token, std::ops::Range<usize>)> {
+    // Build symbol table (DONE WITH LAZY STATIC)
+    // let symtab = SymbolTable::default();
+
     let mut tokens = Token::lexer(file);
 
-    tokens.spanned().collect()
+    let mut str_ = tokens.source();
+    log::info!("====SOURCE====\n{}\n==============", str_);
+
+    // Generating random labels for anonymous scoped blocks
+    // 1. collect all the explicitly labelled blocks and add them to the symtab
+    // 2. for each anonymous block, generate a random identifier for them. Regenerating them if its already exists in the namespace: Anonymous
+    // NOTE: ELF64 defines byte-quad (8-128) width vals. Anything bigger or structured (like class/data) will have to be a pointer to the actual part of the data section. Its layout doesnt have to be specified since the code should deref them at the right offsets
+    // I think most symbols can just be pointer to make it easier
+
+    let res = tokens.spanned().collect();
+
+
+    res
 }
 
 pub fn print_tokens(tokens: &Vec<(Token, std::ops::Range<usize>)>) {
     for token in tokens {
-        print!("token = {:?}", token.0);
-        println!(" range = {:?}", token.1);
+        log::info!("token = {:?}", token.0);
+        log::info!(" range = {:?}", token.1);
     }
 }
 
@@ -287,8 +372,10 @@ impl RootData {
             name: name.to_owned(),
         }
     }
+}
 
-    pub fn new_default() -> Self {
+impl Default for RootData {
+    fn default() -> Self {
         Self {
             name: DEFAULT_NAME.to_owned(),
         }
@@ -308,7 +395,7 @@ impl ParseTree {
     }
 
     fn new_default_internal() -> Self {
-        Self::Internal(InternalData::new_default(), vec![])
+        Self::Internal(InternalData::default(), vec![])
     }
 
     fn new_root(name: &str, children: Vec<ParseTree>) -> Self {
@@ -316,7 +403,7 @@ impl ParseTree {
     }
 
     fn new_default_root() -> Self {
-        Self::Root(RootData::new_default(), vec![])
+        Self::Root(RootData::default(), vec![])
     }
 
     /// Insert a node (subtree) as this node's child
@@ -335,6 +422,9 @@ impl ParseTree {
     }
 }
 
+// IDK if inherited and synthd attrs should be in the node or symtab
+// I think it makes more sense to put most of it in the symtab. But inh/synthd attr are built during parsing
+
 /// Represents a production like T -> T E'
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InternalData {
@@ -351,12 +441,14 @@ impl InternalData {
             children,
         }
     }
+}
 
-    pub fn new_default() -> Self {
+impl Default for InternalData {
+    fn default() -> Self {
         Self {
-            inherited_attr: "".to_owned(),
-            synthesized_attr: "".to_owned(),
-            children: vec![],
+            inherited_attr: Default::default(),
+            synthesized_attr: Default::default(),
+            children: Default::default(),
         }
     }
 }
@@ -408,12 +500,18 @@ fn parse<T>(tokens: &[Token]) -> ParseTree {
 
     let mut use_stmt = || {
         // entry
-        let mut res = ParseTree::new_internal(InternalData::new_default(), vec![]);
+        let mut res = ParseTree::new_internal(InternalData::default(), vec![]);
 
         // use -> ident
         if tokens[lookahead] == Token::Use {
             // 1 ident
             if tokens[lookahead + 1] == Token::Identifier {
+                // take value of identifier
+                // match tokens[lookahead].into() {
+                //     Ok(_) => todo!(),
+                //     Err(_) => todo!(),
+                // }
+
                 // 0 or more :: ident
                 let mut i = 2;
                 while tokens[lookahead + i] == Token::OperatorDoubleColon
@@ -443,7 +541,7 @@ fn parse<T>(tokens: &[Token]) -> ParseTree {
     let mut stmt = || {
         // stmt entry
         // * should prob have a ParseTree::new_internal_default()
-        let mut res = ParseTree::new_internal(InternalData::new_default(), vec![]);
+        let mut res = ParseTree::new_internal(InternalData::default(), vec![]);
 
         // use statement
         match use_stmt() {

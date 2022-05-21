@@ -1,6 +1,9 @@
-use reic::{tokenise, print_tokens};
+use reic::{print_tokens, tokenise};
 
 fn main() {
+    // INIT LOGGING
+    env_logger::init();
+
     // 1. handle reic file.rei
     use std::env;
     use std::fs::read_to_string;
