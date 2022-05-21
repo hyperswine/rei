@@ -234,25 +234,26 @@ use serde_derive::{Deserialize, Serialize};
 // https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm symbol table design
 
 // ident : attr
-struct Symbol<'sym> {
+pub struct Symbol<'sym> {
     ident: &'sym str,
     attr: &'sym str,
 }
 
-struct Namespace<'a> {
+pub struct Namespace<'a> {
     elements: HashMap<&'a str, &'a str>,
 }
 
-struct SymbolTable<'a> {
+pub struct SymbolTable<'a> {
     // a symbol must be uniquely identified within its scope
     symbols: HashMap<&'a str, Namespace<'a>>,
 }
 
-
-// enum ParseTree<T> {
-//     Leaf(T),
-//     Internal(Vec<ParseTree<T>>)
-// }
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum ParseTree {
+    Leaf(LeafData),
+    Internal(InternalData, Vec<ParseTree>),
+    Root(RootData, Vec<ParseTree>),
+}
 
 // NOTE: L-attr SDT with inh and synth attr
 
@@ -260,72 +261,60 @@ struct SymbolTable<'a> {
 /// An empty file is a valid program. You can compile and run it. It will simply have a minimal _start and empty main function that returns 0 and links to std if specified
 /// Its like fn main() {}
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ParseTree {
+pub struct RootData {
     name: String,
-    content: ParseNode<InternalNodeData>,
+}
+
+impl RootData {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+        }
+    }
 }
 
 impl ParseTree {
-    pub fn new(name: String, content: ParseNode<InternalNodeData>) -> Self {
-        Self { name, content }
+    fn new_leaf(lex_value: String) -> Self {
+        Self::Leaf(LeafData { lex_value })
     }
 
-    /// Insert a node as a specific parse node's child
+    fn new_internal(data: InternalData, children: Vec<ParseTree>) -> Self {
+        Self::Internal(data, children)
+    }
+
+    fn new_root(name: &str, children: Vec<ParseTree>) -> Self {
+        Self::Root(RootData::new(name), children)
+    }
+
+    /// Insert a node (subtree) as this node's child
     /// Would be the last child
-    fn insert_node(&mut self, parent: &ParseNode<InternalNodeData>) {
-        // BFS for the parent
-        // recursively call children() until it returns a non negative
-        // then on that node's ith child, push the node
-    }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ParseNode<T> {
-    t: T,
-    is_leaf: bool,
-}
-
-impl<T> ParseNode<T> {
-    fn new(t: T, is_leaf: bool) -> Self {
-        Self { t, is_leaf }
-    }
-}
-
-impl ParseNode<InternalNodeData> {
-    pub fn new_internal_node(
-        inherited_attr: String,
-        synthesized_attr: String,
-        children: Vec<InternalNodeData>,
-    ) -> Self {
-        Self {
-            t: InternalNodeData::new(inherited_attr, synthesized_attr, children),
-            is_leaf: false,
+    fn insert_child(&mut self, parsetree: ParseTree) {
+        // if root or internal, append it, else dont do anything
+        match self {
+            ParseTree::Leaf(_) => {}
+            ParseTree::Internal(_, children) => {
+                children.push(parsetree);
+            }
+            ParseTree::Root(_, children) => {
+                children.push(parsetree);
+            }
         }
     }
 }
 
-impl ParseNode<LeafNodeData> {
-    pub fn new_leaf_node(lex_value: String) -> Self {
-        Self {
-            t: LeafNodeData::new(lex_value),
-            is_leaf: true,
-        }
-    }
-}
-
-// should represent a production like T -> T E'
+/// Represents a production like T -> T E'
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InternalNodeData {
+pub struct InternalData {
     inherited_attr: String,
     synthesized_attr: String,
-    children: Vec<InternalNodeData>,
+    children: Vec<InternalData>,
 }
 
-impl InternalNodeData {
+impl InternalData {
     pub fn new(
         inherited_attr: String,
         synthesized_attr: String,
-        children: Vec<InternalNodeData>,
+        children: Vec<InternalData>,
     ) -> Self {
         Self {
             inherited_attr,
@@ -335,12 +324,13 @@ impl InternalNodeData {
     }
 }
 
+/// Represents a nonterminal production like ident -> [_|ASCII_ALPHA]{[_|ASCII_ALPHANUMERIC]}
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct LeafNodeData {
+pub struct LeafData {
     lex_value: String,
 }
 
-impl LeafNodeData {
+impl LeafData {
     pub fn new(lex_value: String) -> Self {
         Self { lex_value }
     }
@@ -357,10 +347,9 @@ COOL PARSING ALGOS:
 /// Parse those tokens boy
 /// Dont need ranges for increment lookahead. Just use token seq directly
 /// Though good to have for error messages
-fn parse(filename: &str, tokens: &[Token]) -> ParseTree {
+fn parse<T>(tokens: &[Token]) -> ParseTree {
     // Create tree
-    let content_node = ParseNode::new_internal_node("".to_owned(), "".to_owned(), vec![]);
-    let ast = ParseTree::new(filename.to_owned(), content_node);
+    let content_node = ParseTree::new_root("content", vec![]);
 
     // DEFINE FUNCTIONS (Leaf -> Root)
     let mut lookahead = 0;
@@ -429,5 +418,5 @@ fn parse(filename: &str, tokens: &[Token]) -> ParseTree {
 
     content();
 
-    ast
+    content_node
 }
