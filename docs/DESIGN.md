@@ -1,5 +1,12 @@
 # Design
 
+Basic principles:
+
+- RAII and constructor/destructor semantics. All declarations of variables must call at least the basic constructor `Object()`
+- Strict typing
+- Clean format. If your using a prog language, then a human will be reading it. A machine would just read machine code and an AI would be better off having its own special binary protocol. That means no 10 lines of template abuse
+- Integrated but generic. Made for humans, optimised for neutron but can still run on any OS that implements it stdlib and compiler
+
 ## Macros in Std
 
 Not built into the language at least. Available as a library function `core::macro`.
@@ -11,6 +18,9 @@ Not built into the language at least. Available as a library function `core::mac
 // use std::prelude::*
 
 // macros should be upper case unlike functions or classes
+// core::macros are functions that take in varags where each arg is unnamed and unique
+// the macro finds the first arg that works for your input and replaces that section of code with the macro
+// macros are done at parse time just like any other function
 macro Empty(
     ($x:expr) => {},
     () = {}

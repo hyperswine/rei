@@ -2,6 +2,35 @@ use std::{collections::HashMap, process::exit};
 
 use logos::Logos;
 
+// ---------------
+// LEXING
+// ---------------
+
+// Symbols
+// ident : attr
+
+/// The basic foundation for a complex program
+pub struct Symbol<'sym> {
+    ident: &'sym str,
+    attr: &'sym str,
+}
+
+pub struct Namespace<'a> {
+    elements: HashMap<&'a str, &'a str>,
+}
+
+/// Symbol table is filled in by the lexer automatically
+/// As callbacks for each token
+pub struct SymbolTable<'a> {
+    // a symbol must be uniquely identified within its scope
+    symbols: HashMap<&'a str, Namespace<'a>>,
+}
+
+// TODO: callbacks on identifiers and numbers to build a symtab
+// And to end lexing quickly if the same symbol name is present in the same scope
+// So if Hashmap.insert("something") would be off, exit(1)
+
+/// A token in rei
 #[derive(Logos, Debug, PartialEq)]
 pub enum Token {
     #[regex("//.*")]
@@ -233,21 +262,6 @@ use serde_derive::{Deserialize, Serialize};
 
 // https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm symbol table design
 
-// ident : attr
-pub struct Symbol<'sym> {
-    ident: &'sym str,
-    attr: &'sym str,
-}
-
-pub struct Namespace<'a> {
-    elements: HashMap<&'a str, &'a str>,
-}
-
-pub struct SymbolTable<'a> {
-    // a symbol must be uniquely identified within its scope
-    symbols: HashMap<&'a str, Namespace<'a>>,
-}
-
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum ParseTree {
     Leaf(LeafData),
@@ -352,7 +366,12 @@ fn parse<T>(tokens: &[Token]) -> ParseTree {
     let content_node = ParseTree::new_root("content", vec![]);
 
     // DEFINE FUNCTIONS (Leaf -> Root)
+
+    // Should be k lookahead
     let mut lookahead = 0;
+
+    // I think also a curr_token
+    let curr_token: &Token = tokens.first().unwrap_or(&Token::ERROR);
 
     // Match function
     let mut match_token = |t: Token| {
@@ -377,9 +396,8 @@ fn parse<T>(tokens: &[Token]) -> ParseTree {
 
                 return true;
             } else {
-                // error!
-                println!("Error! Undefined use expression");
-                exit(1);
+                // error! stop program. Could also panic or try to resolve it by converting chars (push error onto stack). But not really bothered to do that
+                panic!("Error! Undefined `use` expression");
             }
         }
         false
