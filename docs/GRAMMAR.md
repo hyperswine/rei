@@ -164,3 +164,19 @@ All statements are expressions. All expressions evaluate to a value.
 
 <!-- ? Maybe not actually -->
 <!-- - operator statements -> `expr op expr`, `ident op expr`, `expr op ident` based on l/r-value semantics -->
+
+## Self
+
+`self` is a vital construct in rei. It refers to the current `class` context. All functions local to a class are automatically parameterised with `&mut self`. If you dont want a method to make changes to the data of your class, just read and return, use `const fn`. This prevents the function from changing any state.
+
+I DUNNO WHAT TO DO.
+
+So for scopes:
+
+Just have an Enum.
+
+## Phantasm Scopes
+
+Like rei, phantasm has `namespace` based scoping. Whereas rei is organised into modules. Namespaces are more 'generic'. The YamlParseTree -> Phantasm IR program converts the AST to a single phantasm file.
+
+Linking a library with `libs += std` actually does it at lex time. The code is copied and pasted into root.rei as a module `std {}`. When `use std::prelude::*` is offered. The parser checks the scope which that statement is in. And allows code from `std::prelude` to be used in that scope. IDK how to do this in practice. I dont wanna do any copy pasting either. Maybe just treat all calls to a `std` function as `valid`. So when it refers to the symbol in the symtab, it is a valid operation.

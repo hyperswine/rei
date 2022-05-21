@@ -18,7 +18,7 @@ use std::sync::Mutex;
 // Symbols also store comment or metacode info. Reidoc simply takes all hash comment lines and associates them with symbols. I guess I can also go for multiline hash comments
 
 // Remember to derive serde for all structures
-
+// * Can change this to SymbolTable
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum SymbolType {
     Function,
@@ -170,8 +170,13 @@ pub enum Token {
 
     #[token("mod")]
     Module,
-    #[token("namespace")]
-    Namespace,
+    // Not defined in the standard, but pasm
+    // #[token("namespace")]
+    // Namespace,
+    #[token("internal")]
+    Internal,
+    #[token("pub")]
+    Pub,
     #[token("use")]
     Use,
     #[token("class")]
@@ -182,8 +187,11 @@ pub enum Token {
     Enum,
     #[token("self")]
     SelfKeyword,
-    #[token("macro")]
-    Macro,
+    #[token("super")]
+    Super,
+    // I was going to make this a core::function
+    // #[token("macro")]
+    // Macro,
     #[token("let")]
     Let,
     #[token("const")]
@@ -194,8 +202,6 @@ pub enum Token {
     New,
     #[token("unsafe")]
     Unsafe,
-    #[token("super")]
-    Super,
 
     #[token("if")]
     If,
@@ -209,6 +215,7 @@ pub enum Token {
     While,
     #[token("for")]
     For,
+    // no such thing as 'default'. Just match each possible case either T or None for enums
     #[token("match")]
     Match,
     #[token("continue")]
@@ -217,12 +224,6 @@ pub enum Token {
     Loop,
     #[token("yield")]
     Yield,
-    #[token("case")]
-    Case,
-    #[token("default")]
-    Default,
-    #[token("switch")]
-    Switch,
 
     // Conditions
     #[token("true")]
@@ -244,69 +245,73 @@ pub enum Token {
 
     // @
     #[token("@")]
-    OperatorAnnotation,
+    At,
     // Usually in annotations and lists/tuples
     #[token(",")]
-    OperatorComma,
+    Comma,
 
-    // Context sensitive
+    // Parentheses can be overloaded like C++ classes
     #[token("(")]
-    OperatorBracketLeft,
+    ParenLeft,
     #[token(")")]
-    OperatorBracketRight,
+    ParenRight,
+    // Context sensitive, signifies scoping
     #[token("{")]
-    OperatorCurlyBraceLeft,
+    CurlyBraceLeft,
     #[token("}")]
-    OperatorCurlyBraceRight,
+    CurlyBraceRight,
 
     // Compiler directive on f-strings
     #[token("$")]
-    OperatorDollarSign,
+    DollarSign,
 
     // OVERLOADABLE or SPECIFIC
     #[token("+")]
-    OperatorPlus,
+    Plus,
     #[token("-")]
-    OperatorMinus,
+    Minus,
     #[token("/")]
-    OperatorLeftSlash,
+    LeftSlash,
     #[token("*")]
-    OperatorStar,
+    Star,
     // LArrow Ident RArrow = <id> which means Option<id>
     #[token("<")]
-    OperatorLeftArrow,
+    LeftArrow,
     #[token(">")]
-    OperatorRightArrow,
+    RightArrow,
     #[token("=")]
-    OperatorEquals,
+    Equals,
     #[token("==")]
-    OperatorIdentity,
+    Identity,
     #[token("!")]
-    OperatorExclamation,
+    Exclamation,
     #[token("?")]
-    OperatorQuestion,
+    Question,
     #[token(".")]
-    OperatorDot,
+    Dot,
     // mainly for range based loops
+    // Parser: range_expr or range_op
     #[token("..")]
-    OperatorDoubleDot,
+    DoubleDot,
     #[token(":")]
-    OperatorColon,
+    Colon,
+    // usually module qualification
+    // Parser: scan the inner namespace for that specific mod Identifier's existence
     #[token("::")]
-    OperatorDoubleColon,
+    DoubleColon,
     #[token("'")]
-    OperatorSingleQuote,
+    SingleQuote,
     #[token("\"")]
-    OperatorDoubleQuote,
+    DoubleQuote,
     #[token("^")]
-    OperatorUpArrow,
+    UpArrow,
 
     // SPECIAL: label deref
     // #[token("\\")]
-    // OperatorRightSlash,
+    // RightSlash,
 
     // slice().parse() should be good for most things?
-    #[regex("[a-zA-Z]+")]
+    #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
     Identifier,
     #[regex("[-][0-9]+", |lex| lex.slice().parse())]
     Int(i64),
@@ -322,6 +327,8 @@ pub enum Token {
     // For `strings`
     #[regex("`(?:[^\"]|\\.)*`")]
     DashQuotedString,
+
+    // * If an lexer error is detected, panic. Maybe just use Whitespace?
 
     // Logos requires one token variant to handle errors,
     // We can also use this variant to define whitespace,
@@ -377,7 +384,7 @@ pub fn tokenise(file: &str) -> Vec<(Token, std::ops::Range<usize>)> {
     let mut tokens = Token::lexer(file);
 
     let mut str_ = tokens.source();
-    log::info!("====SOURCE====\n{}\n==============", str_);
+    log::info!("\n====SOURCE====\n{}\n==============", str_);
 
     // Generating labels for scoped blocks. In the end, you cant use namespaces because ELF doesnt have an idea of what that is. Later just generate random names for all the labels
     // 1. collect all the explicitly labelled blocks and add them to the symtab
@@ -569,8 +576,8 @@ fn parse<T>(tokens: &[Token]) -> ParseTree {
 
                 // 0 or more :: ident
                 let mut i = 2;
-                while tokens[lookahead + i] == Token::OperatorDoubleColon
-                    && tokens[lookahead + i + 1] == Token::OperatorDoubleColon
+                while tokens[lookahead + i] == Token::DoubleColon
+                    && tokens[lookahead + i + 1] == Token::DoubleColon
                 {
                     i += 2;
                     // TODO: build leaf nodes for each token and add to res
