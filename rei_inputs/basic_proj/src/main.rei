@@ -1,6 +1,8 @@
 use std::prelude::*
 
 fn main() {
+    // there should be syntax highlighting no?
+    // because the prev statement isnt closed with ;
     println("Hello from sample!")
 
     // operator statements & operator expressions
