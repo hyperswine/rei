@@ -44,6 +44,7 @@ The AST generated has no "order" per se. Since every field should be unique. Sta
 The format of the AST:
 
 ```yml
+# parse tree that can be readily converted into pasm by traversing it in an pre-order way from root -> left subtree -> right subtree
 filename: "filename"
 content:
     - function_def:
@@ -73,6 +74,21 @@ content:
             function_call_expr:
                 ident: "A"
                 args:
+# when let a = A(1). We basically create the fields of A on the stack
+symtab:
+    - namespace: "root"
+        - ident: "func"
+          symbol_type: "function"
+        - ident: "A"
+          symbol_type: "class"
+        - ident: "a"
+          symbol_type: "variable"
+          attr: "A()"
+    - namespace: "aux"
+# includes the data for constants, vars and fields
+data:
+    A:
+        - word
 ```
 
 for
