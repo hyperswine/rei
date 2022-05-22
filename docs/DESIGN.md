@@ -110,6 +110,10 @@ let a = A()
 
 Since pest is a PEG generator, it is LL (top down). That means we dont start at the main production and build it recursively. We start at the root and branch out. Without going back. I think its a recursive descent parser.
 
+### Design of AST
+
+Some cool stuff [here](https://en.wikipedia.org/wiki/Abstract_syntax_tree). With an AST, you need to make sure the order is good. So if there are operators with specific precedence, they should be closer to the left of the tree.
+
 ## Phantasm IR
 
 Phantasm can then be generated from the StrictYAML AST.
@@ -178,4 +182,9 @@ if x {
     // just push the memory address of the var onto the stack
     let z = new C()
 }
+```
+
+```yml
+# the symbol table is a binary tree (each node has at most 2 children)
+# or a btree (self balancing)
 ```
