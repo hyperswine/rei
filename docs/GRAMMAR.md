@@ -46,6 +46,45 @@ standard_function_stmt: {
   fn_keyword ~ ident ~ "(" ~ param_list ~ ")" ~ "{" ~ stmt* ~ "}"
 }
 
+// ------------
+// LEFT RECURSION REMOVAL
+// ------------
+
+// most of stmt, except the bad parts and a way to not recurse onto itself
+allowed_scoped_statements: {
+  function_def | class_def | data_def | variable_def | operator_stmt | if_stmt | for_stmt | while_stmt | return_stmt | trivial_stmt | use_stmt
+}
+
+// DATA/Class field statement
+
+class_field_stmt: {
+  "let"|"const" ~ ident ~ ":" ~ ident
+}
+
+scoped_class_body: {
+  "{" ~
+    (class_field_stmt|allowed_scoped_statements)*
+  ~ "}"
+}
+
+data_field_stmt: {
+  ident ~ ":" ~ ident
+}
+
+field_scoped_block: {
+  "{" ~ data_field_stmt* ~ "}"
+}
+
+// Class Statements
+
+class_def: {
+  "class" ~ scoped_class_body
+}
+
+data_def: {
+  "data" ~ field_scoped_block
+}
+
 // Control Statements
 
 // should technically be a boolean expr, should be parseable
@@ -125,3 +164,19 @@ All statements are expressions. All expressions evaluate to a value.
 
 <!-- ? Maybe not actually -->
 <!-- - operator statements -> `expr op expr`, `ident op expr`, `expr op ident` based on l/r-value semantics -->
+
+## Self
+
+`self` is a vital construct in rei. It refers to the current `class` context. All functions local to a class are automatically parameterised with `&mut self`. If you dont want a method to make changes to the data of your class, just read and return, use `const fn`. This prevents the function from changing any state.
+
+I DUNNO WHAT TO DO.
+
+So for scopes:
+
+Just have an Enum.
+
+## Phantasm Scopes
+
+Like rei, phantasm has `namespace` based scoping. Whereas rei is organised into modules. Namespaces are more 'generic'. The YamlParseTree -> Phantasm IR program converts the AST to a single phantasm file.
+
+Linking a library with `libs += std` actually does it at lex time. The code is copied and pasted into root.rei as a module `std {}`. When `use std::prelude::*` is offered. The parser checks the scope which that statement is in. And allows code from `std::prelude` to be used in that scope. IDK how to do this in practice. I dont wanna do any copy pasting either. Maybe just treat all calls to a `std` function as `valid`. So when it refers to the symbol in the symtab, it is a valid operation.

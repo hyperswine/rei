@@ -22,7 +22,7 @@ data D {
     b: ref D
 }
 
-# In rei, all references must have `ref` in front of it
+// In rei, all references must have `ref` in front of it
 
 /* Hi */
 /* A multiline comment is anything between / and * not and not * and / 

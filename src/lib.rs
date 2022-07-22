@@ -2,6 +2,160 @@ use std::{collections::HashMap, process::exit};
 
 use logos::Logos;
 
+use std::mem::Discriminant;
+
+use lazy_static::lazy_static;
+
+use std::sync::Mutex;
+
+// ---------------
+// LEXING
+// ---------------
+
+// Symbols
+// ident : attr
+
+// Symbols also store comment or metacode info. Reidoc simply takes all hash comment lines and associates them with symbols. I guess I can also go for multiline hash comments
+
+// Remember to derive serde for all structures
+// * Can change this to SymbolTable
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum SymbolType {
+    Function,
+    Class,
+    Data,
+    Variables,
+}
+
+/// The basic foundation for a complex program
+/// Can be used to "trickle up" for parse nodes
+/// A symbol is associated with a token (lexed) and is non trivial. E.g., not an operator or keyword. An identifier, number, float, double quoted string, single quoted string, enhanced string, document comments
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Symbol {
+    symbol_type: SymbolType,
+    lex_val: String,
+}
+
+impl Symbol {
+    pub fn new(symbol_type: SymbolType, lex_val: String) -> Self {
+        Self {
+            symbol_type,
+            lex_val,
+        }
+    }
+}
+
+type Identifier = String;
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Namespace {
+    elements: HashMap<Identifier, Symbol>,
+}
+
+impl Namespace {
+    pub fn new(elements: HashMap<Identifier, Symbol>) -> Self {
+        Self { elements }
+    }
+
+    pub fn get_symbol(&mut self, identifier: &str) -> &mut Symbol {
+        self.elements
+            .get_mut(identifier)
+            .unwrap_or_else(|| panic!("Symbol doesnt exist"))
+    }
+
+    pub fn add_symbol(
+        &mut self,
+        identifier: &str,
+        symbol_type: SymbolType,
+        lex_val: &str,
+    ) -> Result<&Symbol, &'static str> {
+        // check if symbol already exists in the namespace
+        match self.elements.get(identifier) {
+            Some(_) => Err("Symbol already exists"),
+            None => {
+                let r = Symbol::new(symbol_type, lex_val.to_owned());
+
+                self.elements.insert(identifier.to_owned(), r);
+
+                let res = self.elements.get(identifier).unwrap();
+
+                Ok(res)
+            }
+        }
+    }
+}
+
+impl Default for Namespace {
+    fn default() -> Self {
+        Self {
+            elements: Default::default(),
+        }
+    }
+}
+
+/// Symbol table is filled in by the lexer automatically
+/// As callbacks for each token
+pub struct SymbolTable {
+    // a symbol must be uniquely identified within its scope
+    namespaces: HashMap<String, Namespace>,
+}
+
+impl SymbolTable {
+    pub fn new(namespaces: HashMap<String, Namespace>) -> Self {
+        Self { namespaces }
+    }
+
+    // I think parser or lexer needs to add the namespaces properly
+    // Or just have a generic enum SymbolTable
+    // Then gets serialised as usual
+    pub fn add_namespace(&mut self, name: &str) {
+        match self
+            .namespaces
+            .insert(name.to_owned(), Namespace::default())
+        {
+            Some(ns) => panic!(
+                "Namespace {} already exists, are you sure it was at the right level?",
+                name
+            ),
+            None => {}
+        }
+    }
+
+    pub fn insert_value(
+        &mut self,
+        namespace: &str,
+        identifier: &str,
+        symbol_type: SymbolType,
+        lex_val: &str,
+    ) -> &Symbol {
+        match self.namespaces.get_mut(namespace) {
+            Some(ns) => match ns.add_symbol(identifier, symbol_type, lex_val) {
+                Ok(symbol) => symbol,
+                Err(msg) => panic!("{} in namespace {}", msg, namespace),
+            },
+            None => panic!("Namespace doesnt exist, did you make it first?"),
+        }
+    }
+}
+
+impl Default for SymbolTable {
+    fn default() -> Self {
+        Self {
+            namespaces: Default::default(),
+        }
+    }
+}
+
+lazy_static! {
+    static ref SYMTAB: Mutex<SymbolTable> = Mutex::new(SymbolTable::default());
+}
+
+// Use Extras to store extra symbol info. Instead of a symbol table
+// Although it would still be good to build when generating IR and assembly
+// And to end lexing quickly if the same symbol name is present in the same scope
+// So if Hashmap.insert("something") would be off, exit(1)
+
+/// A token in rei
 #[derive(Logos, Debug, PartialEq)]
 pub enum Token {
     #[regex("//.*")]
@@ -11,11 +165,18 @@ pub enum Token {
     HashComment,
     #[regex("/[\\*]([^\\*]|([\\*][^/]))*[\\*]+/")]
     MultilineComment,
+    #[regex("#[\\*]([^\\*]|([\\*][^/]))*[\\*]+#")]
+    MultilineHashComment,
 
     #[token("mod")]
     Module,
-    #[token("namespace")]
-    Namespace,
+    // Not defined in the standard, but pasm
+    // #[token("namespace")]
+    // Namespace,
+    #[token("internal")]
+    Internal,
+    #[token("pub")]
+    Pub,
     #[token("use")]
     Use,
     #[token("class")]
@@ -26,8 +187,11 @@ pub enum Token {
     Enum,
     #[token("self")]
     SelfKeyword,
-    #[token("macro")]
-    Macro,
+    #[token("super")]
+    Super,
+    // I was going to make this a core::function
+    // #[token("macro")]
+    // Macro,
     #[token("let")]
     Let,
     #[token("const")]
@@ -38,8 +202,6 @@ pub enum Token {
     New,
     #[token("unsafe")]
     Unsafe,
-    #[token("super")]
-    Super,
 
     #[token("if")]
     If,
@@ -53,6 +215,7 @@ pub enum Token {
     While,
     #[token("for")]
     For,
+    // no such thing as 'default'. Just match each possible case either T or None for enums
     #[token("match")]
     Match,
     #[token("continue")]
@@ -61,12 +224,6 @@ pub enum Token {
     Loop,
     #[token("yield")]
     Yield,
-    #[token("case")]
-    Case,
-    #[token("default")]
-    Default,
-    #[token("switch")]
-    Switch,
 
     // Conditions
     #[token("true")]
@@ -88,70 +245,76 @@ pub enum Token {
 
     // @
     #[token("@")]
-    OperatorAnnotation,
+    At,
     // Usually in annotations and lists/tuples
     #[token(",")]
-    OperatorComma,
+    Comma,
 
-    // Context sensitive
+    // Parentheses can be overloaded like C++ classes
     #[token("(")]
-    OperatorBracketLeft,
+    ParenLeft,
     #[token(")")]
-    OperatorBracketRight,
+    ParenRight,
+    // Context sensitive, signifies scoping
     #[token("{")]
-    OperatorCurlyBraceLeft,
+    CurlyBraceLeft,
     #[token("}")]
-    OperatorCurlyBraceRight,
+    CurlyBraceRight,
 
     // Compiler directive on f-strings
     #[token("$")]
-    OperatorDollarSign,
+    DollarSign,
 
     // OVERLOADABLE or SPECIFIC
     #[token("+")]
-    OperatorPlus,
+    Plus,
     #[token("-")]
-    OperatorMinus,
+    Minus,
     #[token("/")]
-    OperatorLeftSlash,
+    LeftSlash,
     #[token("*")]
-    OperatorStar,
-    // LArrow [id] RArrow = <id> which means Option<id>
+    Star,
+    // LArrow Ident RArrow = <id> which means Option<id>
     #[token("<")]
-    OperatorLeftArrow,
+    LeftArrow,
     #[token(">")]
-    OperatorRightArrow,
+    RightArrow,
     #[token("=")]
-    OperatorEquals,
+    Equals,
     #[token("==")]
-    OperatorIdentity,
+    Identity,
     #[token("!")]
-    OperatorExclamation,
+    Exclamation,
     #[token("?")]
-    OperatorQuestion,
+    Question,
     #[token(".")]
-    OperatorDot,
+    Dot,
     // mainly for range based loops
+    // Parser: range_expr or range_op
     #[token("..")]
-    OperatorDoubleDot,
+    DoubleDot,
     #[token(":")]
-    OperatorColon,
+    Colon,
+    // usually module qualification
+    // Parser: scan the inner namespace for that specific mod Identifier's existence
     #[token("::")]
-    OperatorDoubleColon,
+    DoubleColon,
     #[token("'")]
-    OperatorSingleQuote,
+    SingleQuote,
     #[token("\"")]
-    OperatorDoubleQuote,
+    DoubleQuote,
     #[token("^")]
-    OperatorUpArrow,
+    UpArrow,
 
     // SPECIAL: label deref
     // #[token("\\")]
-    // OperatorRightSlash,
-    #[regex("[a-zA-Z]+")]
+    // RightSlash,
+
+    // slice().parse() should be good for most things?
+    #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
     Identifier,
-    #[regex("[0-9]+")]
-    Number,
+    #[regex("[-][0-9]+", |lex| lex.slice().parse())]
+    Int(i64),
     #[regex("-?[0-9]+\\.[0-9]+", |lex| lex.slice().parse())]
     Float(f64),
     // For ascii printable "strings" (without backslash)
@@ -164,6 +327,8 @@ pub enum Token {
     // For `strings`
     #[regex("`(?:[^\"]|\\.)*`")]
     DashQuotedString,
+
+    // * If an lexer error is detected, panic. Maybe just use Whitespace?
 
     // Logos requires one token variant to handle errors,
     // We can also use this variant to define whitespace,
@@ -213,15 +378,26 @@ EQUIVALENCE
 // NOTE: | means bitwise OR when using numeric. On other types, its free to overload
 
 pub fn tokenise(file: &str) -> Vec<(Token, std::ops::Range<usize>)> {
+    // Build symbol table (DONE WITH LAZY STATIC)
+    // let symtab = SymbolTable::default();
+
     let mut tokens = Token::lexer(file);
 
-    tokens.spanned().collect()
+    let mut str_ = tokens.source();
+    log::info!("\n====SOURCE====\n{}\n==============", str_);
+
+    // Generating labels for scoped blocks. In the end, you cant use namespaces because ELF doesnt have an idea of what that is. Later just generate random names for all the labels
+    // 1. collect all the explicitly labelled blocks and add them to the symtab
+
+    let res = tokens.spanned().collect();
+
+    res
 }
 
 pub fn print_tokens(tokens: &Vec<(Token, std::ops::Range<usize>)>) {
     for token in tokens {
-        print!("token = {:?}", token.0);
-        println!(" range = {:?}", token.1);
+        log::info!("token = {:?}", token.0);
+        log::info!(" range = {:?}", token.1);
     }
 }
 
@@ -233,26 +409,12 @@ use serde_derive::{Deserialize, Serialize};
 
 // https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm symbol table design
 
-// ident : attr
-struct Symbol<'sym> {
-    ident: &'sym str,
-    attr: &'sym str,
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum ParseTree {
+    Leaf(LeafData),
+    Internal(InternalData, Vec<ParseTree>),
+    Root(RootData, Vec<ParseTree>),
 }
-
-struct Namespace<'a> {
-    elements: HashMap<&'a str, &'a str>,
-}
-
-struct SymbolTable<'a> {
-    // a symbol must be uniquely identified within its scope
-    symbols: HashMap<&'a str, Namespace<'a>>,
-}
-
-
-// enum ParseTree<T> {
-//     Leaf(T),
-//     Internal(Vec<ParseTree<T>>)
-// }
 
 // NOTE: L-attr SDT with inh and synth attr
 
@@ -260,87 +422,106 @@ struct SymbolTable<'a> {
 /// An empty file is a valid program. You can compile and run it. It will simply have a minimal _start and empty main function that returns 0 and links to std if specified
 /// Its like fn main() {}
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ParseTree {
+pub struct RootData {
     name: String,
-    content: ParseNode<InternalNodeData>,
 }
 
+const DEFAULT_NAME: &'static str = "content";
+
+impl RootData {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+        }
+    }
+}
+
+impl Default for RootData {
+    fn default() -> Self {
+        Self {
+            name: DEFAULT_NAME.to_owned(),
+        }
+    }
+}
+
+// Do not expose to main
 impl ParseTree {
-    pub fn new(name: String, content: ParseNode<InternalNodeData>) -> Self {
-        Self { name, content }
+    fn new_leaf(lex_value: &str) -> Self {
+        Self::Leaf(LeafData {
+            lex_value: lex_value.to_owned(),
+        })
     }
 
-    /// Insert a node as a specific parse node's child
+    fn new_internal(data: InternalData, children: Vec<ParseTree>) -> Self {
+        Self::Internal(data, children)
+    }
+
+    fn new_default_internal() -> Self {
+        Self::Internal(InternalData::default(), vec![])
+    }
+
+    fn new_root(name: &str, children: Vec<ParseTree>) -> Self {
+        Self::Root(RootData::new(name), children)
+    }
+
+    fn new_default_root() -> Self {
+        Self::Root(RootData::default(), vec![])
+    }
+
+    /// Insert a node (subtree) as this node's child
     /// Would be the last child
-    fn insert_node(&mut self, parent: &ParseNode<InternalNodeData>) {
-        // BFS for the parent
-        // recursively call children() until it returns a non negative
-        // then on that node's ith child, push the node
-    }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ParseNode<T> {
-    t: T,
-    is_leaf: bool,
-}
-
-impl<T> ParseNode<T> {
-    fn new(t: T, is_leaf: bool) -> Self {
-        Self { t, is_leaf }
-    }
-}
-
-impl ParseNode<InternalNodeData> {
-    pub fn new_internal_node(
-        inherited_attr: String,
-        synthesized_attr: String,
-        children: Vec<InternalNodeData>,
-    ) -> Self {
-        Self {
-            t: InternalNodeData::new(inherited_attr, synthesized_attr, children),
-            is_leaf: false,
+    fn insert_child(&mut self, parsetree: ParseTree) {
+        // if root or internal, append it, else dont do anything
+        match self {
+            ParseTree::Leaf(_) => {}
+            ParseTree::Internal(_, children) => {
+                children.push(parsetree);
+            }
+            ParseTree::Root(_, children) => {
+                children.push(parsetree);
+            }
         }
     }
 }
 
-impl ParseNode<LeafNodeData> {
-    pub fn new_leaf_node(lex_value: String) -> Self {
-        Self {
-            t: LeafNodeData::new(lex_value),
-            is_leaf: true,
-        }
-    }
-}
+// IDK if inherited and synthd attrs should be in the node or symtab
+// I think it makes more sense to put most of it in the symtab. But inh/synthd attr are built during parsing
 
-// should represent a production like T -> T E'
+/// Represents a production like T -> T E'
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InternalNodeData {
+pub struct InternalData {
     inherited_attr: String,
     synthesized_attr: String,
-    children: Vec<InternalNodeData>,
+    children: Vec<InternalData>,
 }
 
-impl InternalNodeData {
-    pub fn new(
-        inherited_attr: String,
-        synthesized_attr: String,
-        children: Vec<InternalNodeData>,
-    ) -> Self {
+impl InternalData {
+    pub fn new(inherited_attr: &str, synthesized_attr: &str, children: Vec<InternalData>) -> Self {
         Self {
-            inherited_attr,
-            synthesized_attr,
+            inherited_attr: inherited_attr.to_owned(),
+            synthesized_attr: synthesized_attr.to_owned(),
             children,
         }
     }
 }
 
+impl Default for InternalData {
+    fn default() -> Self {
+        Self {
+            inherited_attr: Default::default(),
+            synthesized_attr: Default::default(),
+            children: Default::default(),
+        }
+    }
+}
+
+/// Represents a nonterminal production like ident -> [_|ASCII_ALPHA]{[_|ASCII_ALPHANUMERIC]}
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct LeafNodeData {
+pub struct LeafData {
     lex_value: String,
 }
 
-impl LeafNodeData {
+impl LeafData {
     pub fn new(lex_value: String) -> Self {
         Self { lex_value }
     }
@@ -354,16 +535,23 @@ COOL PARSING ALGOS:
     /www.geeksforgeeks.org/recursive-descent-parser/
 */
 
+// BASIC IDEA:
+// For each level, build a node, call any recursive functions then add that to your current node. Then return your node
+
 /// Parse those tokens boy
 /// Dont need ranges for increment lookahead. Just use token seq directly
 /// Though good to have for error messages
-fn parse(filename: &str, tokens: &[Token]) -> ParseTree {
+fn parse<T>(tokens: &[Token]) -> ParseTree {
     // Create tree
-    let content_node = ParseNode::new_internal_node("".to_owned(), "".to_owned(), vec![]);
-    let ast = ParseTree::new(filename.to_owned(), content_node);
+    let content_node = ParseTree::new_root("content", vec![]);
 
     // DEFINE FUNCTIONS (Leaf -> Root)
+
+    // Should be k lookahead
     let mut lookahead = 0;
+
+    // I think also a curr_token
+    let curr_token: &Token = tokens.first().unwrap_or(&Token::ERROR);
 
     // Match function
     let mut match_token = |t: Token| {
@@ -373,34 +561,57 @@ fn parse(filename: &str, tokens: &[Token]) -> ParseTree {
     };
 
     let mut use_stmt = || {
+        // entry
+        let mut res = ParseTree::new_internal(InternalData::default(), vec![]);
+
         // use -> ident
         if tokens[lookahead] == Token::Use {
             // 1 ident
             if tokens[lookahead + 1] == Token::Identifier {
+                // take value of identifier
+                // match tokens[lookahead].into() {
+                //     Ok(_) => todo!(),
+                //     Err(_) => todo!(),
+                // }
+
                 // 0 or more :: ident
                 let mut i = 2;
-                while tokens[lookahead + i] == Token::OperatorDoubleColon
-                    && tokens[lookahead + i + 1] == Token::OperatorDoubleColon
+                while tokens[lookahead + i] == Token::DoubleColon
+                    && tokens[lookahead + i + 1] == Token::DoubleColon
                 {
                     i += 2;
-                }
-                // push AST
+                    // TODO: build leaf nodes for each token and add to res
+                    // use symbol table if needed to link the attrs with the `Ident` type of each token. I THINK WE NEED A UNIQUE ID with each token so symboltable {id: Symbol}
+                    // something like SymbolTable.search(token_id)
 
-                return true;
+                    let leaf = ParseTree::new_leaf("");
+                    res.insert_child(leaf);
+                }
+
+                // * push res
+
+                return Some(res);
             } else {
-                // error!
-                println!("Error! Undefined use expression");
-                exit(1);
+                // error! stop program. Could also panic or try to resolve it by converting chars (push error onto stack). But not really bothered to do that
+                panic!("Error! Undefined `use` expression");
             }
         }
-        false
+        None
     };
 
-    // * return true if possible. Just return true if one of them is right
+    // * return (true, subtree) if possible. Just return true if one of them is right. Otherwise (false, ()). Or just Option<ParseTree>
     let mut stmt = || {
+        // stmt entry
+        // * should prob have a ParseTree::new_internal_default()
+        let mut res = ParseTree::new_internal(InternalData::default(), vec![]);
+
         // use statement
-        if use_stmt() {
-            return true;
+        match use_stmt() {
+            Some(r) => {
+                res.insert_child(r);
+                return Some(res);
+            }
+            None => return None,
         }
 
         // class def
@@ -416,18 +627,24 @@ fn parse(filename: &str, tokens: &[Token]) -> ParseTree {
         // SKIP any Error token and Comment tokens
 
         // no more statements
-        false
+        None
     };
 
     // Start symbol
     let mut content = || {
         // zero or more statements
-        while stmt() {
-            println!("Found a statement")
+        while let res = stmt() {
+            match res {
+                Some(r) => {
+                    println!("Found a statement")
+                    // * add as a child
+                }
+                None => break,
+            }
         }
     };
 
     content();
 
-    ast
+    content_node
 }

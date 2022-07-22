@@ -1,5 +1,12 @@
 # Design
 
+Basic principles:
+
+- RAII and constructor/destructor semantics. All declarations of variables must call at least the basic constructor `Object()`
+- Strict typing
+- Clean format. If your using a prog language, then a human will be reading it. A machine would just read machine code and an AI would be better off having its own special binary protocol. That means no 10 lines of template abuse
+- Integrated but generic. Made for humans, optimised for neutron but can still run on any OS that implements it stdlib and compiler
+
 ## Macros in Std
 
 Not built into the language at least. Available as a library function `core::macro`.
@@ -11,6 +18,9 @@ Not built into the language at least. Available as a library function `core::mac
 // use std::prelude::*
 
 // macros should be upper case unlike functions or classes
+// core::macros are functions that take in varags where each arg is unnamed and unique
+// the macro finds the first arg that works for your input and replaces that section of code with the macro
+// macros are done at parse time just like any other function
 macro Empty(
     ($x:expr) => {},
     () = {}
@@ -34,6 +44,7 @@ The AST generated has no "order" per se. Since every field should be unique. Sta
 The format of the AST:
 
 ```yml
+# parse tree that can be readily converted into pasm by traversing it in an pre-order way from root -> left subtree -> right subtree
 filename: "filename"
 content:
     - function_def:
@@ -63,6 +74,21 @@ content:
             function_call_expr:
                 ident: "A"
                 args:
+# when let a = A(1). We basically create the fields of A on the stack
+symtab:
+    - namespace: "root"
+        - ident: "func"
+          symbol_type: "function"
+        - ident: "A"
+          symbol_type: "class"
+        - ident: "a"
+          symbol_type: "variable"
+          attr: "A()"
+    - namespace: "aux"
+# includes the data for constants, vars and fields
+data:
+    A:
+        - word
 ```
 
 for
@@ -83,6 +109,10 @@ let a = A()
 ```
 
 Since pest is a PEG generator, it is LL (top down). That means we dont start at the main production and build it recursively. We start at the root and branch out. Without going back. I think its a recursive descent parser.
+
+### Design of AST
+
+Some cool stuff [here](https://en.wikipedia.org/wiki/Abstract_syntax_tree). With an AST, you need to make sure the order is good. So if there are operators with specific precedence, they should be closer to the left of the tree.
 
 ## Phantasm IR
 
@@ -120,4 +150,41 @@ x: A
 A: data {
 
 }
+```
+
+## Symbol Table
+
+So we want to store a bunch of entries [ident : value] per scope.
+For `fn ident`, `class ident`, `let ident`. For functions and classes, we can store a pointer to the data. And then just write the data in the data section.
+
+For 'immediates'? Like `if x = 0`. You can just compile that directly to `beq` no. But if that gets assigned, like `let x = 0` or `if let x = 0`. Then `x` is a live variable (always is). Which although technically just use registers and some imm instruction. Its prob best to treat it as a full variable.
+
+That scope then becomes live. Constructs that have scope include: `file`, `class`, `function`, `if_block`, `for_block`, `while_block`. Technically all of these use `scoped_block`. To properly ID them. We need to generate some label for that IF/ELSE/FOR/WHILE statement. Then all local variable lookups with `load __label_identifier`. I guess we can just assign some random namee for the anonymous scopes.
+
+IDK when to randomly generate the name. Lexing kinda makes sense. But if the if statement is wrong... But that would be too bad. We need to refer to it while building the parse tree for it.
+
+```rust
+if x {
+    // push the immediate onto the stack
+    let y = 0
+    // Int
+    // push_word 0x0
+    y = 1
+    // pop_word reg0
+    // load_immediate reg0 0x1
+
+    class C {
+        y: Int
+    }
+
+    // when creating heap alloc'd variables
+    // then the .text/data itself doesnt matter
+    // just push the memory address of the var onto the stack
+    let z = new C()
+}
+```
+
+```yml
+# the symbol table is a binary tree (each node has at most 2 children)
+# or a btree (self balancing)
 ```
