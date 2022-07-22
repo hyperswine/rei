@@ -1,4 +1,7 @@
-# Abstractions
+---
+layout: default
+title: Abstractions
+---
 
 The main `reic` does pretty quick compilation on a list of files. Assuming that the files incorporate modules/submodules properly.
 

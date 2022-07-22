@@ -1,4 +1,7 @@
-# Examples
+---
+layout: default
+title: Examples
+---
 
 Here are a bunch of examples of rei code:
 

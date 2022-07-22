@@ -1,4 +1,7 @@
-# Grammar
+---
+layout: default
+title: Grammar
+---
 
 Pretty much based on scala. Pest cant parse EBNF since it is PEG. So use PEG instead.
 

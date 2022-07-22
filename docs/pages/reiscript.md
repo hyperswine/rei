@@ -1,6 +1,9 @@
-# Rei Scripting Language
+---
+layout: default
+title: Rei Scripting Language
+---
 
-`reis` is pretty much rei's scripting language. 
+`reis` is pretty much rei's scripting language.
 
 You can embed it in your code, or use it as a library.
 

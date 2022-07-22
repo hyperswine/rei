@@ -1,4 +1,7 @@
-# Design
+---
+layout: default
+title: Design
+---
 
 Basic principles:
 
