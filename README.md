@@ -1,2 +1,3 @@
-# rei
- Rei Language
+# Rei
+
+Rei Toolchains (compilers) + Libraries.
