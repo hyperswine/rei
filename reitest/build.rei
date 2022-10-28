@@ -1,0 +1,3 @@
+require = {
+    core = { path = "../core" }
+}
