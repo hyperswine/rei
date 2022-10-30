@@ -2,6 +2,4 @@
     Common Annotations
 *#
 
-// Annotations are like rust macros
-
-export arrange: annotation(input:Expr) ()
+export arrange: annotation (input: Expr) => ()
