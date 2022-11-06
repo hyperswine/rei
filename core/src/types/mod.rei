@@ -8,7 +8,7 @@ export i32: Int32
 export i64: Int64
 export i128: Int128
 
-export Range<Index>: {
+export Range[Index]: {
     start: Index
     end: Index
 }
@@ -49,7 +49,7 @@ export Display: annotation(derive) (tokens: Tokens) {
 
 // Result = enum {} or uhh?
 
-export Result<T, E>: enum {
+export Result[T, E]: enum {
     Ok = T
     Error = E
 }

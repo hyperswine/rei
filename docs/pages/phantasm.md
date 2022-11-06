@@ -3,7 +3,9 @@ layout: default
 title: Phantasm Backend
 ---
 
-## Phantasm Usage
+## Phantasm RISC Usage
+
+Phantasm RISC is quite different to Phantasm SM. You have direct register-register and register-memory operations.
 
 Example:
 

@@ -1,4 +1,0 @@
-#*
-    Interpreter functions
-*#
-@!cfg(interpreter)
