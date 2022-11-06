@@ -13,7 +13,7 @@ ident generics? ":" universal_modifier? expr
 // local def
 var_modifier? ident ":" expr
 
-expr: namespaced_ident | callable_expr | unary_expr | binary_expr
+expr: namespaced_ident | callable_expr | unary_expr | binary_expr | macro_case_expr
 // namespaced_ident: ident ("::" ident)*
 
 // literals
@@ -31,4 +31,8 @@ eval_expr: scope_expr | arrow_expr
 
 scope_expr: expr*
 arrow_expr: "=>" expr
+
+// macro
+macro_case_expr: "(" macro_expr ")" eval_expr
+// special macro @ is simply an annotation
 ```

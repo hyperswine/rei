@@ -9,7 +9,6 @@ prelude = {
 
 // modules are implicit in prei, if you dont want them, dont create them or do @hide
 
-@reish
 script = {
     // depending on your platform, configs and builds for your arch extensions, os, etc.
     supported_platforms = ["macos", "linux", "neutron", "freebsd"]

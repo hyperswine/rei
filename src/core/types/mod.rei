@@ -2,6 +2,7 @@
     Useful core types
 *#
 
+// USEFUL ALIASES...
 export i8: Int8
 export i16: Int16
 export i32: Int32
