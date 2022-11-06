@@ -1,10 +1,12 @@
 # Rei
 
-Rei Toolchains (compilers) + Libraries.
+Rei utilities: compilation (lexing, parsing, codegen API), queries, project management, hooks, general purpose utility libraries for embedded, bare metal and application development.
 
 ![Rei](/docs/ReiLogo.png)
 
 A programming language that just works.
+
+NOTE: This repo doesn't contain "extra" functionality like arcen which are specific gui frameworks. The utility libraries are meant to be very general purpose, serving 90-99% of use cases without imposing a strict programming style.
 
 ## Compiler Process
 

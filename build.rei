@@ -1,8 +1,13 @@
 // Dont link against std, we are std. Core and tests auto included but explicit here. As well as any other useful no-std stuff
 require = {
-    core = { path = "../core" }
-    test = { path = "../reitest" }
+    std
 }
+
+prelude = {
+    enabled = true
+}
+
+// modules are implicit in prei, if you dont want them, dont create them or do @hide
 
 @reish
 script = {
@@ -14,6 +19,8 @@ script = {
 }
 
 Features: enum {
+    // if std is on, then the lib will be linked
+    Std
     Graphics: enum => {
         Shader
     }
