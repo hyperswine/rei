@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Rei LSP
+title: Rein Integration
 ---
 
 ## Rein
