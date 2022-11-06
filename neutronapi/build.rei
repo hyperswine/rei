@@ -1,3 +1,0 @@
-require = {
-    std = { path = "../std" }
-}
