@@ -1,6 +1,9 @@
 #*
-    Incremental Interpretation
+    Interpret AST for consteval and AST/tree sitter interpretation
 *#
+
+// any incremental interpretation?
+
 export default interpret_expr: (expr: Expr) -> ReiType<T*> {
     match expr {
         AnnotationExpr => {

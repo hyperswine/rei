@@ -2,6 +2,8 @@
     Compiles to a 'rei' executable
 *#
 
+use base::*
+
 Subcommand: enum {
     // IDE should highlight blue: green
     Compile: Compile
