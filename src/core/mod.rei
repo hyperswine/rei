@@ -1,3 +1,3 @@
 #*
-    Contains functions you cant live without, including dynamic allocations
+    Contains useful primitives for writing low level software on supported platforms
 *#
