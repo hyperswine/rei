@@ -3,35 +3,29 @@
 *#
 
 use pkg::common::Size
-use core::prelude::Allocator
+use core::prelude::alloc
 
 # A standard vector
-export Vec: complex {
-    __internal: data {
-        arr: *mut _
+export Vec[T]: {
+    // private field
+    _internal: {
+        arr: *mut T
         size: Size
     }
-    __constants: data {
-        items_to_allocate_default: Size = 8
-    }
 
-    impl Default() -> Self {
-        Self {
-            __internal: {arr: alloc(__constants.items_to_allocate_default)}
-        }
-    }
+    const _items_to_allocate_default = 8
+    
+    () -> Self => Self { _internal: { arr: alloc(_items_to_allocate_default) } }
 }
 
-export Tree: complex {
-    data tree {
-        root: *mut _
+export Tree[T]: {
+    _tree: {
+        root: *mut T
         n_nodes: Size
         depth: Size
         width: Size
     }
 
-    # Call default constructors
-    impl Default() -> Self {
-        Self {}
-    }
+    # Call default constructors only works for non anonymous objects
+    // () -> Self => Self {}
 }

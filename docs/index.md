@@ -34,17 +34,13 @@ Only module level definitions (universal and constant) may be exported. Although
 
 By default the lang server autofills using fully qualified paths.
 
-### Objects
+### Objects: Data, Enum and Complexes
 
 Objects are the main structure for composing and modelling data. Object scopes are special scopes where you have key: val fields and associated functions. Functions starting with `self` are simply sugar for methods. Note methods are simply any other associated function and belong to the current module namespace.
 
 ### Tuples
 
 Tuples are a special type. Unlike objects, they do not have a key: value mapping but rather rely on array like indexing. Tuples are a special function type that basically returns itself when called.
-
-### Complexes
-
-Although complexes dont belong in the callable subclass of types, doing something like `let x = X()` works as the `X()` is simply sugar for `X::new()`.
 
 ## Everything is an Expression
 

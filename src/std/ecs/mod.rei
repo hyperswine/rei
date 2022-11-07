@@ -7,7 +7,7 @@ ECSBackend: {}
 // fine, but not exportable and can only be mutated in unsafe contexts
 // to allow complex state management, export an unsafe fn that mutates the value 
 // or an impure fn with a local unsafe block
-mut __global_ecs = ECSBackend()
+mut global_ecs = ECSBackend()
 
 // Unlike macros, annotations dont change the input stream/return a modified one
 // Instead, they control access to global systems and resources
@@ -15,7 +15,7 @@ mut __global_ecs = ECSBackend()
 # A system. Registering a function with @sys makes the ECS backend know of the system and callable from the main system thread
 export sys: annotation (fn_expr:Fn) {
     // all systems are functions that take in components
-    __global_ecs.register(fn_expr)
+    global_ecs.register(fn_expr)
 }
 
 // Could use a hardware accel backend for this, by @compute. Which gets compiler to try and make all invocations a compute shader instead and schedule on a proper hardware accelerator
