@@ -4,9 +4,9 @@ title: Rei
 nav_order: 1
 ---
 
-## Overview: What is Rei?
+## Overview
 
-Rei is a language that is built to flow. Maximal focus on static analysis. What should result is a mixture of performance, elegance and productivity (also through ergonomics, see `rein`). A feeling that the language just works once you've set everything up.
+Rei is a general purpose programming language that flows across spacetime, with a maximal focus on static analysis. What should result is a mixture of performance, elegance and productivity (also through ergonomics, see `rein`). A feeling that the language just works once you've set everything up.
 
 Rei can be seen as a minimal language and api which allows you to build complex abstractions on top of. Rei is meant to accustom super low level programming and systems programming in a direct manner. It takes inspiration from rust, lisp, typescript and the ascended theory of computation.
 
@@ -15,6 +15,34 @@ Rei can be seen as a minimal language and api which allows you to build complex 
 Bitfields. In the realm of the ascended theory of computation, we take the lowest, most atomic form of data to be a single bit. When combined and permutated, form more complex data. We then interpret those permutations of discrete bits to form the reasoning and logic of our program and complex data types. Furthermore if we consider how the data is transferred, e.g. streamed or bulk transferred, the logic we use could be significantly different. There are also additional topics such as padding, alignment, etc. which may be required for the underlying system's implementatin, e.g. SSD's are partitioned into 512B-4K pages.
 
 In the rei base language spec, the root type is `Bits`. That is, 0-INF permutations of bits. This can is represented through an array of booleans with index `0` as the first bit and index `size - 1` as the last bit.
+
+## Functional
+
+Rei can be seen as a functional-first language. It is meant to be general purpose, and does have object-oriented capabilities, but many of its concepts borrow from functional programming literature.
+
+Coming from an OOP background, one may be familiar with classes, methods, inheritance, vtables, and all the design patterns associated with it such as factories, builders, visitors, etc.
+
+With rei-style functional programming, one should instead think in terms of enumerated objects, pattern matching, effect purity, closures, generics and monomorphism, function composition and functional macros. Also, rei exposes an ergonomic interface to declare objects in an OO-style while maintaining the underlying, driving functional paradigm. E.g. the `extend` keyword helps to modularise and simulate the feel of inheritance, while all your doing is creating another variant of the base enum.
+
+## Blocks
+
+The most abstract concept of computation is an instruction. A more helpful concept is that of a block of instructions. A sequence of instructions carried from start to finish. Blocks come in many different types: normal blocks, enumerated blocks, extension blocks, parameterised blocks, macro blocks, module blocks.
+
+A block may be an anonymous (unlabelled) block. Anonymous blocks are basically blocks with their own local namespace that inherits the scope rules from its parent block. E.g. an anonymous block placed somewhere in a function would just be its own local namespace + the function's namespace and executed in the function's context. An anonymous block somewhere in an object's body would be similar. It would be basically an extension of the object within the object itself, like a local namespace for functions you dont want other functions in the object to know of. An anonymous block somewhere in a module block is again similar, though they cannot be exported. Anon blocks inside objects and modules are not recommended and are usually just going to be optimised out since you cant target them directly, unless you are assigning a variable to them (but that cant be done inside module blocks and object blocks anyway).
+
+## Prei
+
+`Project tool for Rei` is a universal utility and framework for writing somewhat standard rei applications. It enforces a certain project structure, with `src, examples, docs, tests, etc`. Your main source files are structured similar to cargo, with implicit file-modules and directory-submodules for managing complex themes.
+
+What prei also does is allow stronger integration with `rein` and its language analysis features. Most features found in LSPs nowadays are supported by using prei as an intermediary. What prei does is cache queries and store a single, global data structure to allow fast incremental compilation. The underlying engine it uses is rei's base language library which implements the lexing, parsing and codegen functions among other features defined in the base rei spec. You can think of `prei` like cargo, but with a more powerful interface and extra responsibilites for creating and building entire projects in an efficient manner.
+
+## Demand Driven Compilation
+
+Rei's base implementation is structured as a demand-driven model. It exposes a set of API functions that usually do independent tasks and can potentially allow better parallelisation through a manager like prei.
+
+The base implementation is meant to be a minimal, self standing set of APIs to allow the programmer to build pretty much whatever they want. Most compilers would implement features like modules, traits, etc directly in the compiler itself. But rei takes a different approach. There is no global symbol table per se, but rather a symbol table API which you can use to manage modules (which is also partially know by prei). There is no cache, no builtin pipelines, etc. Rei is not supposed to be a complex system that maximises throughput but rather a general purpose processor that uses queues and atomic operations to process instructions. There is hardly any state (if there even is any).
+
+A good way to look at the base spec is to think of it as a bunch of independent pure functions. Many of the things they do involve parsing code into nodes and subtrees which you can then either use straight away in e.g. prei or call another function on it like lowering it further. In this regard, it is possible to form a fully fledged environment around rei and its utilities and libraries.
 
 ## Features
 
