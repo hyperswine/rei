@@ -32,3 +32,6 @@ Features: enum {
         }
     }
 }
+
+// building the entire project with the defaults will also build reic and prei binaries
+// if you just want the library, then include rei in your prei project
