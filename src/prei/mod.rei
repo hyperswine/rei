@@ -25,7 +25,9 @@ PreiSymbols: {
 }
 
 Symtab: extend {
-    Module
+    Module: {
+        
+    }
 }
 
 /*
