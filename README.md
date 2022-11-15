@@ -8,6 +8,8 @@ A programming language that just works.
 
 NOTE: This repo doesn't contain "extra" functionality like arcen which are specific gui frameworks. The utility libraries are meant to be very general purpose, serving 90-99% of use cases without imposing a strict programming style.
 
+[Semi thorough documentation can be found in here](https://hyperswine.github.io/rei)
+
 ## Compiler Process
 
 Rei follows a similar pattern to rust's compilation process. First, prei converts all source files to modules and all modules to a hierarchy of namespaces ending with the root `pkg` namespace. It does this in parallel for each source file, and parses each file in parallel. The resulting AST is combined together and sent to the analyser.

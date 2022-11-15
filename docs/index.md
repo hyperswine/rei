@@ -24,6 +24,8 @@ Coming from an OOP background, one may be familiar with classes, methods, inheri
 
 With rei-style functional programming, one should instead think in terms of enumerated objects, pattern matching, effect purity, closures, generics and monomorphism, function composition and functional macros. Also, rei exposes an ergonomic interface to declare objects in an OO-style while maintaining the underlying, driving functional paradigm. E.g. the `extend` keyword helps to modularise and simulate the feel of inheritance, while all your doing is creating another variant of the base enum.
 
+Functional programming is generally much more concise since everything is treated as a function. Rei encourages one to write callable contexts (a more generalised version of a function or control block with its own context). The `core` library encourages use of function composition and chaining, higher order functions, generic functions, wrappers and aggregations with map-based operations like `map`, `filter`, `reduce`, `match` to map over them or pattern match.
+
 ## Blocks
 
 The most abstract concept of computation is an instruction. A more helpful concept is that of a block of instructions. A sequence of instructions carried from start to finish. Blocks come in many different types: normal blocks, enumerated blocks, extension blocks, parameterised blocks, macro blocks, module blocks.
