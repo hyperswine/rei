@@ -4,7 +4,7 @@
 
 // LEX
 use Rust::reic::lex::*
-export const LEXER = ReiLexer
+export LEXER: ReiLexer
 
 # incremental compile expr
 export compile_expr: (string: String) -> Vec[Instruction] {
@@ -27,15 +27,18 @@ Numeric: bits[u128]
 // Interpreted Rei Type
 // First class objects
 ReiType: enum {
-    Enum
     Callable: enum {
         Fn
-
+        Macro
     }
-    Data: data {
-        Vec[ReiType]
+    Object: enum {
+        # either key: val or tuples
+        Data: Vec[ReiType] | HashMap[String, ReiType]
+        Enum
     }
     Primitive: enum {
+        # technically, this is the onl type. But base also defines other "types" in a similar primitive way for ergonomics
+        Bits: Bits
         Numeric: Numeric
         String: std::String
     }
