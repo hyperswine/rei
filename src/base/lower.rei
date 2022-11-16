@@ -31,12 +31,12 @@ DirectJumpFn: {
         let M = std::log2(m)
         
         // The scheme assumes the number of bins is a power of two, m = 2^M. Let w be the number of bits in a machine word
-        let a = loop {
+        let a, b = loop {
             // can also generate like 2-10 at once and check them all
             let a = std::random(Odd, l=1, r=2^64)
             let b = std::random(r=2^(64-M))
             // test for conflicts
-            conds.map(x => (a*x+b)>>(w-M)).has_duplicates() ? a : break
+            conds.map(x => (a*x+b)>>(w-M)).has_duplicates() ? (a, b) : break
         }
 
         // store a
