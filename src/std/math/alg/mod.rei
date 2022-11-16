@@ -10,7 +10,7 @@ export Matrix<T>: {
     _data: Vec2D<T>
 }
 
-export Matrix<T>: complex {
+export Matrix<T>: {
     // => means only consider the next self contained expr, usually for one liners
     new: (_data: &[[T]]) -> Self => Self{_data}
     new: (_data: &[T], rows: Size, cols: Size) -> Self {
@@ -31,7 +31,7 @@ export Matrix<T>: complex {
 // Matrix(...) => auto deduced
 
 // You can have multiple systems of the same name, but with differing fields and fn signatures, etc
-export Matrix<T>: complex {
+export Matrix<T>: {
     impl Add() {}
     impl Subtract() {}
     impl Multiply() {}
@@ -42,4 +42,4 @@ export Matrix<T>: complex {
 export DataFrame: Matrix<String>
 
 // a complex + a data object type promotes the data object into a companion object
-export DataFrame: complex {}
+export DataFrame: {}

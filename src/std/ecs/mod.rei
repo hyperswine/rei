@@ -4,40 +4,32 @@
 
 ECSBackend: {}
 
-// fine, but not exportable and can only be mutated in unsafe contexts
-// to allow complex state management, export an unsafe fn that mutates the value 
-// or an impure fn with a local unsafe block
-mut global_ecs = ECSBackend()
+// defined in prei or rei core? like rust's once_cell, but wrapped around in a lock free ring buffer
+// all once cells can be accessed by anything else in the direct module
+once RingBuffer { mut global_ecs = ECSBackend() }
 
 // Unlike macros, annotations dont change the input stream/return a modified one
 // Instead, they control access to global systems and resources
 
-# A system. Registering a function with @sys makes the ECS backend know of the system and callable from the main system thread
-export sys: annotation (fn_expr:Fn) {
+# A system makes the ECS backend know of the fn and callable from the main system thread
+export system: annotation (fn_expr: Fn) {
     // all systems are functions that take in components
     global_ecs.register(fn_expr)
 }
 
 // Could use a hardware accel backend for this, by @compute. Which gets compiler to try and make all invocations a compute shader instead and schedule on a proper hardware accelerator
-@compute
 gravity: system (dt: f32, velocities: &mut [Vel3D], gravitational_constant: Accel3D) {
-    velocities.for_each(v => {
-        v += gravitational_constant * dt
-    })
+    velocities.for_each(v => v += gravitational_constant * dt)
 }
 
 F32A3: [f32; 3]
 
-@component
 Pos3D: F32A3
 
-@component
 Vel3D: F32A3
 
-@component
 Accel3D: F32A3
 
-@component
 Player3D: {
     pos3d: Pos3D
 }

@@ -2,10 +2,10 @@
     Machine Learning Utilities
 *#
 
-Model: complex {}
+Model: {}
 
 ## Decision Trees
 
-DecisionTree: complex {}
+DecisionTree: {}
 
 ## AUTOML => in automl lib, uses these models
