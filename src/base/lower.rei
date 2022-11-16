@@ -13,6 +13,7 @@ export SymbolTable: {
 # always generate this so if you add more conds you can incrementally remake the hash
 DirectJumpFn: {
     a: u64
+    b: u64
 
     // would prob be propagated to the lower IR or be constructed there? or just conditions here
     (conditions: Vec[Condition]) -> Self {
@@ -39,7 +40,7 @@ DirectJumpFn: {
         }
 
         // store a
-        Self {a}
+        Self {a, b}
     }
 
     hash: (a: u64, x: u64, w: u64, M: u64) => (a*x) >> (w-M)
