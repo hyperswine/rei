@@ -7,3 +7,7 @@ aux_links:
 footer_content: "Rei!"
 
 logo: "ReiLogo.png"
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
