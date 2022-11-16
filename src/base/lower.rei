@@ -2,6 +2,8 @@
     Lower Expr
 *#
 
+use Rust::cranelift::prelude::*
+
 SymbolTable: {
     // item_type: Module | Item
     // Item: Variable | Fn | Object | Extension
@@ -13,16 +15,56 @@ Lowerer: {
 
     find_symbol: (&self, parent: _, ident: _, item_type: _) -> Expr | CompileError {}
 
+    /*
+        Initial Lowering. Basically involves expanding elements to their complete form
+    */
+    lower: (&mut self, expr: Expr) -> Expr {
+        match expr {
+            BinaryOp (op, lhs, rhs) {
+                match op {
+                    Elvis {
+                        // convert to an if statement? or jump to label?
+                        // maybe just a generic condition?
+                        Condition(cond=lhs, lhs, rhs)
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+        Optimising Pass
+    */
+    optimize: (&mut self, expr: Expr) -> Expr {
+        match expr {
+            ConditionGroup (expr) {
+                
+            }
+        }
+    }
+
+    /*
+        Desugar Pass
+    */
+    desugar: (&mut self) {
+        // match specific expressions
+    }
+
+    /*
+        Lower further to IR
+    */
+
     // lower to phantasm sm
     lower_sm: (&mut self, expr: Expr) -> PhantasmSchematic | CompileError {
         match expr {
-            BinaryOp(op, lhs, rhs) => {
+            BinaryOp (op, lhs, rhs) {
                 match op {
-                    Add => {
+                    Add {
                         // request the Add trait from symtab? use effects in the form of propagation?
                         // maybe the ident and type inference needs separate? instead of the same fn?
                         // NOTE: the grammar and parser kind of just works in that if there is an error with one of the fns, it will propagate an Err
-                        let add_fn = self.find_symbol(parent=lower_sm(lhs), ident=Add, item_type=Fn) ?: return "Couldn't find {ident}: impl Add..."
+                        let add_fn = self.find_symbol(parent=lower_sm(lhs), ident=Add, item_type=Fn) ?:
+                            return CompileError("Couldn't find {ident}: impl Add...")
 
                         // return the lhs.add(rhs)?
                         // or call Add?
@@ -44,7 +86,12 @@ Lowerer: {
 
     // lower to phantasm risc
     lower_risc: (&self, expr: Expr) {}
+
+    // lower to cranelift
+    lower_cranelift: (&self, expr: Expr) -> CraneliftSchematic | CompileError {}
 }
+
+CraneliftSchematic: CraneliftIR
 
 // call expr or parenthesis expr?
 // a parenthesis with comma , should be a call right?
