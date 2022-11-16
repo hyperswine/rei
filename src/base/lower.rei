@@ -4,13 +4,51 @@
 
 use Rust::cranelift::prelude::*
 
-SymbolTable: {
+export SymbolTable: {
     // item_type: Module | Item
     // Item: Variable | Fn | Object | Extension
     // list of sorted key: val entries of ident: (item_type, child_items: SymbolTable?)
 }
 
-Lowerer: {
+# always generate this so if you add more conds you can incrementally remake the hash
+DirectJumpFn: {
+    a: u64
+
+    // would prob be propagated to the lower IR or be constructed there? or just conditions here
+    (conditions: Vec[Condition]) -> Self {
+        let conds = conditions.map(next_cond => {
+            // cond, lhs, rhs
+            next_cond.cond
+        })
+        // basically generate a universal hash fn that maps to either lhs or rhs (just random labels) based on the hashed result
+        let n_labels = conditions.len()
+
+        // conds are boolean expressions? so either you do a full pattern match
+        // or consider each result and multiplex them to a single bitwise function
+        
+        // generate a random prime >= N-1
+        // let p = std::random_prime(at_least=n_labels-1)
+        let m = n_labels
+        let M = std::log2(m)
+        // let a, b = std::random(n=2)
+
+        // The scheme assumes the number of bins is a power of two, m = 2^M. Let w be the number of bits in a machine word
+    
+        let a = loop {
+            // can also generate like 2-10 at once and check them all
+            let a = std::random()
+            // test for conflicts
+            conds.map(x => (a*x) >> (w-M)).has_duplicates() ? a : break
+        }
+
+        // store a
+        Self {a}
+    }
+
+    hash: (a: u64, x: u64, w: u64, M: u64) => (a*x) >> (w-M)
+}
+
+export Lowerer: {
     symtab: SymbolTable
 
     find_symbol: (&self, parent: _, ident: _, item_type: _) -> Expr | CompileError {}
@@ -38,7 +76,8 @@ Lowerer: {
     optimize: (&mut self, expr: Expr) -> Expr {
         match expr {
             ConditionGroup (expr) {
-                
+                // NOTE: expr actually gets matched to Vec<Condition> 
+                let jump_fn = DirectJumpFn(conditions=expr)
             }
         }
     }
@@ -91,7 +130,7 @@ Lowerer: {
     lower_cranelift: (&self, expr: Expr) -> CraneliftSchematic | CompileError {}
 }
 
-CraneliftSchematic: CraneliftIR
+export CraneliftSchematic: CraneliftIR
 
 // call expr or parenthesis expr?
 // a parenthesis with comma , should be a call right?

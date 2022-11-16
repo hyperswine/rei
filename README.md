@@ -37,3 +37,12 @@ x: macro {
     (x: Ident "," y: Expr) {}
 }
 ```
+
+### Bootstrapping
+
+If you are building rei from scratch, you have a couple of options:
+
+1. use the rust implemention of rei base to build rei base, then use that to build `rei`: base, core, std, prei. Then use the built prei and rei suite to rebuild rei
+2. download the prebuilt binaries `reic` and `prei` via an installer, e.g. for neutron riscv
+
+NOTES: the rei base's rust implementation is self contained so it doesnt rely on any code here.

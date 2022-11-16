@@ -1,6 +1,8 @@
 // RING BUFFER (MPMC)
 
 # MPMC, Lock Free
-export default RingBuf: {
+export default RingBuffer[T, N]: {
+    data: [T; N]
 
+    () -> Self => Self()
 }
