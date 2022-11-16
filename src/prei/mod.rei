@@ -41,6 +41,8 @@ Symtab: extend {
 */
 
 // to prevent circular dependencies, keep this macro local
+// since you wont be linking prei with prei? wait but you are
+// maybe it wont highlight it if it detects the AST? because export here isnt a macro but an ident
 export: macro {}
 
 /*

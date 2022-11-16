@@ -13,7 +13,7 @@ export Vec[T]: {
         size: Size
     }
 
-    const _items_to_allocate_default = 8
+    _items_to_allocate_default: 8
     
     () -> Self => Self { _internal: { arr: alloc(_items_to_allocate_default) } }
 }

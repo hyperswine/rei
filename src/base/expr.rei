@@ -47,9 +47,9 @@ ComputeBlock: {
 lower: (expr: PrimitiveExpr) -> IRInstruction {
     // lower and return
     match expr {
-        Numeric => {
-
-        }
+        Bits => ()
+        Numeric => ()
+        String => ()
     }
 }
 
@@ -60,9 +60,9 @@ Variable: {
     type_ident: Ident
 }
 
-const UNARY_OP_PRECENDENCE = [QuestionMark ExclamationMark Star Ampersand]
-const BITWISE_OP_PRECEDENCE = [Not And Or XOr]
-const OP_PRECEDENCE = [Paren BITWISE_OP_PRECEDENCE Star LeftSlash Modulo Plus Minus]
+UNARY_OP_PRECENDENCE: [QuestionMark ExclamationMark Star Ampersand]
+BITWISE_OP_PRECEDENCE: [Not And Or XOr]
+OP_PRECEDENCE: [Paren BITWISE_OP_PRECEDENCE Star LeftSlash Modulo Plus Minus]
 
 // only self contained expressions
 reorder_operations: (expr: Expr) -> Expr {
