@@ -4,8 +4,6 @@ title: Rei
 nav_order: 1
 ---
 
-<link rel="shortcut icon" type="image/png" href="favicon.png">
-
 ## Overview
 
 Rei is a general purpose programming language that flows across spacetime, with a maximal focus on static analysis. What should result is a mixture of performance, elegance and productivity (also through ergonomics, see `rein`). A feeling that the language just works once you've set everything up.
