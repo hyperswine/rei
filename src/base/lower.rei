@@ -56,17 +56,23 @@ DirectJumpFn: {
     hash: (a: u64, x: u64, w: u64, M: u64) => (a*x) >> (w-M)
 }
 
+# A live lowerer of expressions and its upper cached symbol
 export Lowerer: {
-    symbols: Symbol
+    root_symbol: Symbol
 
     find_symbol: (&self, parent: _, ident: _, item_type: _) -> Expr | CompileError {}
+    
+    # get type (ident?) of expr
+    eval_type: (&mut self, expr: Expr) -> Ident? {
+
+    }
 
     /*
         Initial Lowering. Basically involves expanding elements to their complete form
     */
     lower: (&mut self, expr: Expr) -> Expr {
         match expr {
-            BinaryOp (op, lhs, rhs) {
+            BinaryOp (lhs, op, rhs) {
                 match op {
                     Elvis {
                         // convert to an if statement? or jump to label?
@@ -74,6 +80,18 @@ export Lowerer: {
                         Condition(cond=lhs, lhs, rhs)
                     }
                 }
+            }
+            // op expr
+            UnaryPrefixOp (op, expr) {
+                match op {
+                    Exclamation {
+                        // search for the neq method impl or derive
+                        self.find_symbol(expr)
+                    }
+                }
+            }
+            UnaryPostfixOp (expr, op) {
+
             }
         }
     }
