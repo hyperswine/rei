@@ -3,14 +3,24 @@
 *#
 
 use Rust::cranelift::prelude::*
+use super::expr::[Ident ReiType Expr]
 
-export SymbolTable: {
-    // item_type: Module | Item
-    // Item: Variable | Fn | Object | Extension
-    // list of sorted key: val entries of ident: (item_type, child_items: SymbolTable?)
+export Symbol: BaseSymbol | ScopeSymbol
+
+// reitype is a base feature
+
+export BaseSymbol: {
+    ident: Ident
+    type: ReiType
+    node: &Expr
+}
+
+export ScopeSymbol: {
+    inner_scope: Box[Symbol]
 }
 
 # always generate this so if you add more conds you can incrementally remake the hash
+# maybe place this in expr or codegen or optimizer
 DirectJumpFn: {
     a: u64
     b: u64
@@ -47,7 +57,7 @@ DirectJumpFn: {
 }
 
 export Lowerer: {
-    symtab: SymbolTable
+    symbols: Symbol
 
     find_symbol: (&self, parent: _, ident: _, item_type: _) -> Expr | CompileError {}
 
