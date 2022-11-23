@@ -30,3 +30,12 @@ ChunkCache[Size]: extend {
 }
 
 // (): impl From[Result[T, E]] () => Ok(T())
+
+// RING BUFFER (MPMC)
+
+# MPMC, Lock Free
+export RingBuffer[T, N]: {
+    data: [T; N]
+
+    () -> Self => Self()
+}

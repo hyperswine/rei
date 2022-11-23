@@ -1,4 +1,6 @@
-// EXPRESSIONS
+#*
+    Reusable Expressions
+*#
 
 export Lhs: Expr
 export Rhs: Expr
@@ -12,7 +14,7 @@ export Expr: enum {
     MethodCallExpr
     OperatorExpr: enum {
         BinaryOp: (BinaryOperator, Lhs, Rhs)
-        UnaryOp: (BinaryOperator, Rhs)
+        UnaryOp: (UnaryOperator, Rhs)
     }
     BlockExpr
     GroupExpr
@@ -60,13 +62,48 @@ Variable: {
     type_ident: Ident
 }
 
-UNARY_OP_PRECENDENCE: [QuestionMark ExclamationMark Star Ampersand]
-BITWISE_OP_PRECEDENCE: [Not And Or XOr]
-OP_PRECEDENCE: [Paren BITWISE_OP_PRECEDENCE Star LeftSlash Modulo Plus Minus]
-
 // only self contained expressions
 reorder_operations: (expr: Expr) -> Expr {
     mut res = Expr()
 
     // maybe you can just parse it...?
+}
+
+// wait wait... some operators can be unary some can be binary
+
+# Not ordered, simply the mechanism, no policy
+export Operator: enum {
+    Tilde: "~"
+    ExclamationMark
+    QuestionMark
+    Ampersand: "&"
+    Superscript: "^"
+    Backtick
+    At: "@"
+    
+    VBar: "|"
+    DoubleVBar: "||"
+    DollarSign
+    PercentSign
+
+    Plus
+    Minus
+    Star
+    ForwardSlash: "/"
+    BackSlash: "\\"
+
+    Gt: ">"
+    Gte: ">="
+    Lt
+    Lte
+    Equals
+    Equivalent: "=="
+
+    Colon: ":"
+    Comma: ","
+    DoubleColon: "::"
+    SemiColon: ";"
+
+    Ellipsis2: ".."
+    Ellipsis3: "..."
 }
