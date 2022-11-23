@@ -1,6 +1,5 @@
 #*
-    PARSING LOGIC
-    To create the AST
+    PARSING LOGIC to create the AST
 *#
 
 use core::expr::*
@@ -9,7 +8,7 @@ use std::expr::*
 export ParserError: Token
 export ParseRes: Expr | ParserError
 
-Range: Range<Size>
+Range: Range[Size]
 
 Parser: {
     // associated state / components
@@ -36,10 +35,6 @@ Parser: {
 
     expect: (&mut self, token: token) -> LexData => self.accept(token).unwrap()
 }
-
-// maybe a better idea is to return Self?
-// and implcitly add stuff to the expr param object?
-// fn_decl()?.obj_decl()?...
 
 // Base expressions
 Parser: extend {
@@ -209,19 +204,11 @@ Parser: extend {
     where_item: (&mut self) -> ParseRes => self.condition_expr() ?: self.expr()?
 }
 
-BinaryOp: {
-    binop_plus: () {}
-    binop_minus: () {}
-}
-
+BinaryOp: ()
 BinOpFn: (Expr, BinaryOperator, Expr) -> ()
 
 // core::Index[T]
-impl BinaryOp: core::Index(token: Token) -> BinOpFn? {
-    // if token in BinaryOperator {
-        // a static hashmap?
-    // }
-
+BinaryOp: impl core::Index(token: Token) -> BinOpFn? {
     // either this or a fn annotation above binop_* but might not be as easy to understand?
     static const MAP = {
         // therre may be specific binary operations based on the context?

@@ -1,8 +1,8 @@
 #*
-    Interpret AST for consteval and AST/tree sitter interpretation
+    Constant Evaluation of Expressions, including type inference and full value replacement
 *#
 
-// any incremental interpretation?
+// Any incremental interpretation? Interpret AST for consteval and AST/tree sitter interpretation
 
 export default interpret_expr: (expr: Expr) -> ReiType<T*> {
     match expr {

@@ -1,5 +1,5 @@
 #*
-    Lower Expr
+    Lower an Expression
 *#
 
 use Rust::cranelift::prelude::*

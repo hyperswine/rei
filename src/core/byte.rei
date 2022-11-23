@@ -4,3 +4,6 @@
 
 // should be primitive? where should they even be defined to be used by compiler?
 export Byte: u8
+
+// utility functions as well?
+// otherwise...

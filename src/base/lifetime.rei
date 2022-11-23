@@ -2,4 +2,4 @@
     Complete Lifetime Elision (CLE)
 *#
 
-elide_lt: () => ()
+export elide_lt: () => ()

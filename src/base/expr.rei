@@ -107,3 +107,14 @@ export Operator: enum {
     Ellipsis2: ".."
     Ellipsis3: "..."
 }
+
+use Rust::reic::lex::LEXER
+
+# reexport
+export LEXER: ReiLexer
+
+# incremental compile expr
+export compile_expr: (string: String) -> Vec[Instruction] {
+    let expr = parse(LEXER.lex(file_contents)).expr()
+    lower(expr)
+}

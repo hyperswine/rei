@@ -2,10 +2,7 @@
     Iterator Patterns
 *#
 
-// should export(x) also make it visible here?
-
-// iterators allow SIMD and easy parallelism when you dont need to depend on the prev values
-
+# iterators allow SIMD and easy parallelism when you dont need to depend on the prev values
 export(prelude) Iter[Item]: trait {
     // overload 0
     map[Res]: (&self, f: Fn[Self::Item, Res]) -> Iter[Res]
