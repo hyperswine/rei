@@ -2,7 +2,7 @@
     Prei is a vital tool for managing rei projects
 *#
 
-use pkg::base::[Symbol Symtab]
+use pkg::base::prelude::[Symbol Symtab]
 
 Symtab: {
     items: Vec[Symbol]

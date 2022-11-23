@@ -3,14 +3,24 @@
 *#
 
 use Rust::cranelift::prelude::*
+use super::expr::[Ident ReiType Expr]
 
-export SymbolTable: {
-    // item_type: Module | Item
-    // Item: Variable | Fn | Object | Extension
-    // list of sorted key: val entries of ident: (item_type, child_items: SymbolTable?)
+export Symbol: BaseSymbol | ScopeSymbol
+
+// reitype is a base feature
+
+export BaseSymbol: {
+    ident: Ident
+    type: ReiType
+    node: &Expr
+}
+
+export ScopeSymbol: {
+    inner_scope: Box[Symbol]
 }
 
 # always generate this so if you add more conds you can incrementally remake the hash
+# maybe place this in expr or codegen or optimizer
 DirectJumpFn: {
     a: u64
     b: u64
@@ -46,17 +56,23 @@ DirectJumpFn: {
     hash: (a: u64, x: u64, w: u64, M: u64) => (a*x) >> (w-M)
 }
 
+# A live lowerer of expressions and its upper cached symbol
 export Lowerer: {
-    symtab: SymbolTable
+    root_symbol: Symbol
 
     find_symbol: (&self, parent: _, ident: _, item_type: _) -> Expr | CompileError {}
+    
+    # get type (ident?) of expr
+    eval_type: (&mut self, expr: Expr) -> Ident? {
+
+    }
 
     /*
         Initial Lowering. Basically involves expanding elements to their complete form
     */
     lower: (&mut self, expr: Expr) -> Expr {
         match expr {
-            BinaryOp (op, lhs, rhs) {
+            BinaryOp (lhs, op, rhs) {
                 match op {
                     Elvis {
                         // convert to an if statement? or jump to label?
@@ -64,6 +80,18 @@ export Lowerer: {
                         Condition(cond=lhs, lhs, rhs)
                     }
                 }
+            }
+            // op expr
+            UnaryPrefixOp (op, expr) {
+                match op {
+                    Exclamation {
+                        // search for the neq method impl or derive
+                        self.find_symbol(expr)
+                    }
+                }
+            }
+            UnaryPostfixOp (expr, op) {
+
             }
         }
     }
