@@ -10,6 +10,9 @@ Bits[N]: [bool: N]
 Numeric: Bits[u128]
 Numeric[T, N]: [Bits[T]; N]
 
+# "*". In core, we also allow modifiers like r"*"
+BaseString: ()
+
 // Rei types as first class features
 ReiType: enum {
     Callable: enum {
@@ -39,14 +42,3 @@ Descriptor: {
     one: Bit
     two: Bits[2]
 }
-
-// recursively call another Bits
-// export macro Bits: (_: Colon, ident: Ident, scope: ScopeExpr) -> Data {
-//     ident: {
-//         scope.exprs().map(expr => match expr {
-//             Ident(id) => Bits(id)
-//             UniversalDef(id, rhs) => Bits(id, rhs)
-//             Other(other) => panic("Unexpected expression {other}, expected a bitfield expr!")
-//         })
-//     }
-// }

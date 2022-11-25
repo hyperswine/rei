@@ -4,6 +4,7 @@
 
 use Rust::cranelift::prelude::*
 use super::expr::[Ident ReiType Expr]
+use super::optimizer::*
 
 export Symbol: BaseSymbol | ScopeSymbol
 
@@ -17,43 +18,6 @@ export BaseSymbol: {
 
 export ScopeSymbol: {
     inner_scope: Box[Symbol]
-}
-
-# always generate this so if you add more conds you can incrementally remake the hash
-# maybe place this in expr or codegen or optimizer
-DirectJumpFn: {
-    a: u64
-    b: u64
-
-    // would prob be propagated to the lower IR or be constructed there? or just conditions here
-    (conditions: Vec[Condition]) -> Self {
-        let conds = conditions.map(next_cond => {
-            // cond, lhs, rhs
-            next_cond.cond
-        })
-
-        // basically generate a universal hash fn that maps to either lhs or rhs (just random labels) based on the hashed result
-        let n_labels = conditions.len()
-
-        // conds are boolean expressions? so either you do a full pattern match
-        // or consider each result and multiplex them to a single bitwise function
-        let m = n_labels
-        let M = std::log2(m)
-        
-        // The scheme assumes the number of bins is a power of two, m = 2^M. Let w be the number of bits in a machine word
-        let a, b = loop {
-            // can also generate like 2-10 at once and check them all
-            let a = std::random(Odd, l=1, r=2^64)
-            let b = std::random(r=2^(64-M))
-            // test for conflicts
-            conds.map(x => (a*x+b)>>(w-M)).has_duplicates() ? (a, b) : break
-        }
-
-        // store a
-        Self {a, b}
-    }
-
-    hash: (a: u64, x: u64, w: u64, M: u64) => (a*x) >> (w-M)
 }
 
 # A live lowerer of expressions and its upper cached symbol
@@ -158,97 +122,8 @@ export Lowerer: {
 
 export CraneliftSchematic: CraneliftIR
 
-// call expr or parenthesis expr?
-// a parenthesis with comma , should be a call right?
-// an empty parenthesis by itself should be empty
-// a parenthesis right after an ident may be a call, for example
-// x() is a call
-// x () is not a call! but rather ident empty
-
-/*
-classes of operators and operations
-
-binary op (=, x, 5)
-=, ident, literal
-x = 5
-
-binary op (/, binop_child, 5)
-x + 5 / 5
-binop_child (+, x, 5)
-
-unary op (postfix, ?, x)
-x?
-
-unary op (postfix, !, x::y)
-!x::y
-
-so how is used and unused?
-
-var_def (immutable, x, rhs)
-let x = f()?
-rhs unary op (postfix, call_expr(f, empty), ?)
-f()?
-
-var_def (immutable, x, rhs)
-let x = f() ?: g
-rhs elvis (lhs, rhs)
-lhs call_expr(f, empty)
-rhs ident
-
-so in order:
-let mut const
-
-"DEFINITION"
-:
-=
-
-[expr]
-{expr}
-(expr)
-!expr ?expr
-expr! expr?
-~
-$
-
-"BINARY"
-& | ^ and &= |= ^=
-/ * % and /= *= %=
-- + and -= +=
-
-OVERLOADED?
-
-[] can mean array context or generic context
-array: [expr1], [expr1..expr2] where expr generally resolve to numeric
-generic: [expr1], [expr1, expr2, expr3] where expr can be many things
-
-# should mean array
-let x = []
-
-# should mean generic
-let x = T[x]()
-
-# should be generic
-X[T]: Y[T]
-
-# should mean array
-x[3]
-let g = x[len()]
-let g = x[0..s].for_each(val => ())
-
-so generic can only be used in contexts like
-universal definition or local definition
-ident brackets expr call
-ident brackets expr
-
-an array can only be used like
-ident brackets expr
-ident brackets
-
-in a local context, generics are usually bound by calls like T[x]()
-in a global context, generics are usually bound to definitions
-
-arrays can also be used in global or local contexts
-
-maybe allow operator precedence to be defined?
-ehh nah
-*/
+# incremental compile expr
+export compile_expr: (string: String) -> Vec[Instruction] {
+    let expr = parse(LEXER.lex(file_contents)).expr()
+    lower(expr)
+}

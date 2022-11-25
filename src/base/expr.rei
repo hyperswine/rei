@@ -7,55 +7,67 @@ export Rhs: Expr
 
 # Extendable by core and std. Or by another compiler suite/"builtin library"
 export Expr: enum {
-    AnnotationExpr
-    VisExpr
+    # utf8 namespaced string
+    IdentExpr: String
+    # no namespacing, e.g. for general and sequential defs
+    BareIdentExpr: String
+    LiteralExpr: Numeric | BaseString
 
-    CallExpr
-    MethodCallExpr
     OperatorExpr: enum {
-        BinaryOp: (BinaryOperator, Lhs, Rhs)
-        UnaryOp: (UnaryOperator, Rhs)
+        BinaryOp: (Lhs, BinaryOperator, Rhs)
+        UnaryOp: (UnaryType, UnaryOperator, Rhs)
     }
-    BlockExpr
-    GroupExpr
+
+    # {expr*}
+    ScopeExpr
+    # (expr) to prevent ListExpr which takes (expr*)?
+    ParenExpr
     
+    // keyword expr?
     ReturnExpr
     YieldExpr
-
-    TernaryExpr
+    // where expr
     WhereExpr
+
+    # expr ? expr : expr
+    TernaryExpr
+    # expr ?: expr
+    ElvisExpr
+
+    # expr...
     VariadicExpr
-    AnonFnExpr
+    
+    # (), basically paren expr but empty
     EmptyExpr
 
-    Mod
-    Fn
-    Object
-    Trait
-    Impl
-    Type
-}
+    # var.field
+    InstanceFieldExpr
+    # expr (args?)
+    CallExpr
 
-// LOWERING EXPR's to make them more verbose at first or just to make them closer to phantasm
+    # [generic_item_expr*]
+    GenericExpr
+    # [expr*]
+    ListExpr
+    # [expr]
+    IndexExpr
 
-ComputeBlock: {
-    instructions: Vec<IRInstruction>
-}
+    # (let|const|mut)
+    SequentialDef: (VarModifier, Box[Rhs])
 
-// shouldnt you traverse the tree and build a new tree based on the expr
-// and type inference?
+    # static lhs = rhs. NOTE: lazy is a core:: definition
+    StaticExpr: Box[Expr]
 
-// numerics or string
-lower: (expr: PrimitiveExpr) -> IRInstruction {
-    // lower and return
-    match expr {
-        Bits => ()
-        Numeric => ()
-        String => ()
+    GeneralDef: enum {
+        # A: B
+        Alias
+        Callable
+        Object: Complex | Enum
+        Extend
+        Trait
+        Impl
     }
 }
-
-lower: (expr: IdentExpr) {}
 
 Variable: {
     // either an object or something
@@ -108,13 +120,8 @@ export Operator: enum {
     Ellipsis3: "..."
 }
 
+// RUST API
 use Rust::reic::lex::LEXER
 
 # reexport
 export LEXER: ReiLexer
-
-# incremental compile expr
-export compile_expr: (string: String) -> Vec[Instruction] {
-    let expr = parse(LEXER.lex(file_contents)).expr()
-    lower(expr)
-}
