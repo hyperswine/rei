@@ -27,9 +27,7 @@ export Lowerer: {
     find_symbol: (&self, parent: _, ident: _, item_type: _) -> Expr | CompileError {}
     
     # get type (ident?) of expr
-    eval_type: (&mut self, expr: Expr) -> Ident? {
-
-    }
+    eval_type: (&mut self, expr: Expr) -> Ident? {}
 
     /*
         Initial Lowering. Basically involves expanding elements to their complete form
@@ -87,28 +85,17 @@ export Lowerer: {
     lower_sm: (&mut self, expr: Expr) -> PhantasmSchematic | CompileError {
         match expr {
             BinaryOp (op, lhs, rhs) {
-                match op {
-                    Add {
-                        // request the Add trait from symtab? use effects in the form of propagation?
-                        // maybe the ident and type inference needs separate? instead of the same fn?
-                        // NOTE: the grammar and parser kind of just works in that if there is an error with one of the fns, it will propagate an Err
-                        let add_fn = self.find_symbol(parent=lower_sm(lhs), ident=Add, item_type=Fn) ?:
-                            return CompileError("Couldn't find {ident}: impl Add...")
+                // maybe yield op here?
+                // match op {
+                //     Add {
+                //         // naive impl, hardcoupled. Instead, use an effect yield to get the required symbol from caller
+                //         // let add_fn = self.find_symbol(parent=lower_sm(lhs), ident=Add, item_type=Fn) ?:
+                //             // return CompileError("Couldn't find {ident}: impl Add...")
+                //     }
+                // }
 
-                        // return the lhs.add(rhs)?
-                        // or call Add?
-                        // wait what about the thing
-                        // should we build another thing while we're at it?
-                        // or should that be built prior?
-                        // hmm maybe that should be built prior
-
-                        // so x::X::Add actually becomes x_X_Add
-                        // and the op actually becomes x_X_Add x y
-                        // push x
-                        // push y
-                        // call x_X_Add
-                    }
-                }
+                // find the fn expr to handle the lhs and rhs
+                let operator_handler: &Expr = yield op
             }
         }
     }
