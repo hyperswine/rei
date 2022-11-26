@@ -2,6 +2,8 @@
     Reusable Expressions
 *#
 
+use super::types::[Operator BinaryOperator UnaryOperator]
+
 export Lhs: Expr
 export Rhs: Expr
 
@@ -79,45 +81,6 @@ reorder_operations: (expr: Expr) -> Expr {
     mut res = Expr()
 
     // maybe you can just parse it...?
-}
-
-// wait wait... some operators can be unary some can be binary
-
-# Not ordered, simply the mechanism, no policy
-export Operator: enum {
-    Tilde: "~"
-    ExclamationMark
-    QuestionMark
-    Ampersand: "&"
-    Superscript: "^"
-    Backtick
-    At: "@"
-    
-    VBar: "|"
-    DoubleVBar: "||"
-    DollarSign
-    PercentSign
-
-    Plus
-    Minus
-    Star
-    ForwardSlash: "/"
-    BackSlash: "\\"
-
-    Gt: ">"
-    Gte: ">="
-    Lt
-    Lte
-    Equals
-    Equivalent: "=="
-
-    Colon: ":"
-    Comma: ","
-    DoubleColon: "::"
-    SemiColon: ";"
-
-    Ellipsis2: ".."
-    Ellipsis3: "..."
 }
 
 // RUST API

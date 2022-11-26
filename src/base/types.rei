@@ -42,3 +42,42 @@ Descriptor: {
     one: Bit
     two: Bits[2]
 }
+
+# Not ordered, simply the mechanism, no policy
+export Operator: enum {
+    Tilde: "~"
+    ExclamationMark
+    QuestionMark
+    Ampersand: "&"
+    Superscript: "^"
+    Backtick
+    At: "@"
+    
+    VBar: "|"
+    DoubleVBar: "||"
+    DollarSign
+    PercentSign
+
+    Plus
+    Minus
+    Star
+    ForwardSlash: "/"
+    BackSlash: "\\"
+
+    Gt: ">"
+    Gte: ">="
+    Lt
+    Lte
+    Equals
+    Equivalent: "=="
+
+    Colon: ":"
+    Comma: ","
+    DoubleColon: "::"
+    SemiColon: ";"
+
+    Ellipsis2: ".."
+    Ellipsis3: "..."
+}
+
+// some ops may be only unary some maybe only binary
