@@ -39,7 +39,7 @@ export Range[Index]: {
 
 // associated types can also be declared with the where statement for trait fns
 // associative functions
-export Add<Rhs, Res>: trait (self, rhs: Rhs) -> Res
-export Mult<Rhs, Res>: trait (self, rhs: Rhs) -> Res
-export Sub<Rhs, Res>: trait (self, rhs: Rhs) -> Res
-export Div<Rhs, Res>: trait (self, rhs: Rhs) -> Res
+// export Add<Rhs, Res>: trait (self, rhs: Rhs) -> Res
+// export Mult<Rhs, Res>: trait (self, rhs: Rhs) -> Res
+// export Sub<Rhs, Res>: trait (self, rhs: Rhs) -> Res
+// export Div<Rhs, Res>: trait (self, rhs: Rhs) -> Res

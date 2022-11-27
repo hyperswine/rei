@@ -99,7 +99,7 @@ export UnaryOperator: enum {
 // oh maybe the other way around? how to match a trait then? maybe use annotations?
 export BinaryOperator: enum {
     // if impl for Bits, can use for Numeric and String
-    Star: Mult
+    Star: Mul
     Plus: Add
     Minus: Sub
     ForwardSlash: Div
