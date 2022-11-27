@@ -69,7 +69,7 @@ export Operator: enum {
     Lt
     Lte
     Equals
-    Equivalent: "=="
+    Equiv: "=="
 
     Colon: ":"
     Comma: ","
@@ -81,3 +81,39 @@ export Operator: enum {
 }
 
 // some ops may be only unary some maybe only binary
+
+export UnaryOperator: enum {
+    Prefix: enum {
+        Star: Deref
+        Ampersand: Ref
+        Tilde: BitwiseNot
+    }
+    Postfix: enum {
+        QuestionMark: PropagateOk
+        ExclamationMark: PropagateErr
+        Ellipsis2: Range
+        Ellipsis3: Variadic
+    }
+}
+
+// oh maybe the other way around? how to match a trait then? maybe use annotations?
+export BinaryOperator: enum {
+    // if impl for Bits, can use for Numeric and String
+    Star: Mult
+    Plus: Add
+    Minus: Sub
+    ForwardSlash: Div
+
+    Ampersand: BitwiseAnd
+    VBar: BitwiseOr
+    Superscript: BitwiseXor
+
+    Gt: Gt
+    Lt: Lt
+    Gte: Gte
+    Lte: Lte
+    
+    Equiv: Equiv
+
+    Ellipsis2: Range
+}
