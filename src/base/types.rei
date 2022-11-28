@@ -82,6 +82,7 @@ export Operator: enum {
 
 // some ops may be only unary some maybe only binary
 
+/*
 export UnaryOperator: enum {
     Prefix: enum {
         Star: Deref
@@ -95,8 +96,11 @@ export UnaryOperator: enum {
         Ellipsis3: Variadic
     }
 }
+*/
 
 // oh maybe the other way around? how to match a trait then? maybe use annotations?
+
+/*
 export BinaryOperator: enum {
     // if impl for Bits, can use for Numeric and String
     Star: Mul
@@ -117,3 +121,4 @@ export BinaryOperator: enum {
 
     Ellipsis2: Range
 }
+*/

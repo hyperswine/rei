@@ -204,16 +204,18 @@ Parser: extend {
     where_item: (&mut self) -> ParseRes => self.condition_expr() ?: self.expr()?
 }
 
-BinaryOp: ()
-BinOpFn: (Expr, BinaryOperator, Expr) -> ()
+// BinaryOp: ()
+// BinOpFn: (Expr, BinaryOperator, Expr) -> ()
 
 // core::Index[T]
+/*
 BinaryOp: impl core::Index(token: Token) -> BinOpFn? {
     // either this or a fn annotation above binop_* but might not be as easy to understand?
     static const MAP = {
-        // therre may be specific binary operations based on the context?
+        // there may be specific binary operations based on the context?
         // hmm maybe do this during the descent?
         Plus = binop_plus
         Minus = binop_minus
     }
 }
+*/
