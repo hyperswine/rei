@@ -15,9 +15,11 @@ export Expr: enum {
     BareIdentExpr: String
     LiteralExpr: Numeric | BaseString
 
+    # base defines a few operators it cares about
     OperatorExpr: enum {
         BinaryOp: (Lhs, Operator, Rhs)
-        UnaryOp: (UnaryType, Operator, Rhs)
+        UnaryOp: (UnaryType, Operator, Expr)
+        BareOp: (Operator)
     }
 
     # expr.expr
