@@ -9,6 +9,7 @@ use super::optimizer::*
 export Symbol: BaseSymbol | ScopeSymbol
 
 // reitype is a base feature
+// nvm it seems, I seem to care about modular and ELEGANT programming
 
 export BaseSymbol: {
     ident: Ident
@@ -20,91 +21,55 @@ export ScopeSymbol: {
     inner_scope: Box[Symbol]
 }
 
-# A live lowerer of expressions and its upper cached symbol?
-export Lowerer: {
-    root_symbol: Symbol
-
-    find_symbol: (&self, parent: _, ident: _, item_type: _) -> Expr | CompileError {}
+find_symbol: (parent: _, ident: _, item_type: _) -> Expr | CompileError {}
     
-    # get type (ident?) of expr
-    eval_type: (&mut self, expr: Expr) -> Ident? {}
+# get type (ident?) of expr
+eval_type: (expr: Expr) -> Ident? {}
 
-    /*
-        Initial Lowering. Basically involves expanding elements to their complete form
-    */
-    lower: (&mut self, expr: Expr) -> Expr {
-        match expr {
-            BinaryOp (lhs, op, rhs) {
-                match op {
-                    Elvis {
-                        // convert to an if statement? or jump to label?
-                        // maybe just a generic condition?
-                        Condition(cond=lhs, lhs, rhs)
-                    }
+/*
+    Initial Lowering. Basically involves expanding elements to their complete form
+*/
+lower: (expr: Expr) -> Expr {
+    match expr {
+        BinaryOp (lhs, op, rhs) {
+            match op {
+                Elvis {
+                    // convert to an if statement? or jump to label?
+                    // maybe just a generic condition?
+                    Condition(cond=lhs, lhs, rhs)
                 }
             }
-            // op expr
-            UnaryPrefixOp (op, expr) {
-                match op {
-                    Exclamation {
-                        // search for the neq method impl or derive
-                        self.find_symbol(expr)
-                    }
+        }
+        // op expr
+        UnaryPrefixOp (op, expr) {
+            match op {
+                Exclamation {
+                    // search for the neq method impl or derive
+                    self.find_symbol(expr)
                 }
             }
-            UnaryPostfixOp (expr, op) {
-
-            }
+        }
+        UnaryPostfixOp (expr, op) {
         }
     }
-
-    /*
-        Optimising Pass
-    */
-    optimize: (&mut self, expr: Expr) -> Expr {
-        match expr {
-            ConditionGroup (expr) {
-                // NOTE: expr actually gets matched to Vec<Condition> 
-                let jump_fn = DirectJumpFn(conditions=expr)
-            }
-        }
-    }
-
-    /*
-        Desugar Pass
-    */
-    desugar: (&mut self) {}
-
-    /*
-        Mostly to deal with operator expressions, binary and unary
-        You should provide a list? No
-        I think you should just use effects. Passing around a large set of state is ehh
-    */
-    clarify: (&mut self) {
-
-    }
-
-    /*
-        Lower further to IR
-    */
-
-    // lower to phantasm sm
-    lower_sm: (&mut self, expr: Expr) -> PhantasmSchematic | CompileError {
-        match expr {
-            // dont deal with Unary and Binary Ops here, just ignore them for later
-            // UnaryOp (type, op, expr)
-            // BinaryOp (lhs, op, rhs)
-        }
-    }
-
-    // lower to phantasm risc
-    lower_risc: (&self, expr: Expr) {}
-
-    // lower to cranelift
-    lower_cranelift: (&self, expr: Expr) -> CraneliftSchematic | CompileError {}
 }
 
-// nvm it seems, I seem to care about modular and ELEGANT programming
+/*
+    Optimising Pass
+*/
+optimize: (expr: Expr) -> Expr {
+    match expr {
+        ConditionGroup (expr) {
+            // NOTE: expr actually gets matched to Vec<Condition> 
+            let jump_fn = DirectJumpFn(conditions=expr)
+        }
+    }
+}
+
+/*
+    Desugar Pass
+*/
+desugar: (expr: Expr) {}
 
 /*
     Mostly to deal with operator expressions, binary and unary
@@ -133,6 +98,24 @@ clarify: (expr: Expr) {
         }
     }
 }
+
+/*
+    Lower further to IR
+*/
+// lower to phantasm sm
+lower_sm: (expr: Expr) -> PhantasmSchematic | CompileError {
+    match expr {
+        // dont deal with Unary and Binary Ops here, just ignore them for later
+        // UnaryOp (type, op, expr)
+        // BinaryOp (lhs, op, rhs)
+    }
+}
+
+// lower to phantasm risc
+lower_risc: (, expr: Expr) {}
+
+// lower to cranelift
+lower_cranelift: (, expr: Expr) -> CraneliftSchematic | CompileError {}
 
 /*
     Facts:

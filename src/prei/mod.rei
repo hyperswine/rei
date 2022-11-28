@@ -26,3 +26,8 @@ Module: extend Symbol {
 */
 
 export: macro {}
+
+# A live lowerer of a package
+export Lowerer: {
+    root_symbol: Symbol
+}

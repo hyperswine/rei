@@ -2,7 +2,7 @@
     Reusable Expressions
 *#
 
-use super::types::[Operator BinaryOperator UnaryOperator]
+use super::types::[Operator]
 
 export Lhs: Expr
 export Rhs: Expr
@@ -16,15 +16,15 @@ export Expr: enum {
     LiteralExpr: Numeric | BaseString
 
     OperatorExpr: enum {
-        BinaryOp: (Lhs, BinaryOperator, Rhs)
-        UnaryOp: (UnaryType, UnaryOperator, Rhs)
+        BinaryOp: (Lhs, Operator, Rhs)
+        UnaryOp: (UnaryType, Operator, Rhs)
     }
 
     # {expr*}
     ScopeExpr
     # (expr) to prevent ListExpr which takes (expr*)?
     ParenExpr
-    
+
     // keyword expr?
     ReturnExpr
     YieldExpr
@@ -65,8 +65,11 @@ export Expr: enum {
         Alias
         Callable
         Object: Complex | Enum
+        # X: extend Y... including X: extend... which means X: extend Self
         Extend
+        # X: trait...
         Trait
+        # X: impl... or X: impl Add...
         Impl
     }
 }
