@@ -26,21 +26,58 @@ find_symbol: (parent: _, ident: _, item_type: _) -> Expr | CompileError {}
 # get type (ident?) of expr
 eval_type: (expr: Expr) -> Ident? {}
 
+// ! seems like this version of lowering involves some form of marking as unknowns, basically replacing it with a fn call
+// and something to do with knowing about macros and operators
+// maybe core::lower should implement these instead?
+
 /*
     Initial Lowering. Basically involves expanding elements to their complete form
     Only care about the "non overloadable operators in a non macro context"
 */
 lower: (expr: Expr) -> Expr {
     match expr {
-        Macro {
+        GeneralDef {
+            match expr {
+                Macro {
+                    // ...take each case and keep that as a driver somewhere like macro_driver or macro_expand
+                    // then call that for ident expressions that match it
+                    // does base know how to handle that? maybe it doesnt at first? or it doesnt try to lower everything too hard just incase
+                    // some exprs are macro calls. Maybe build macro into core lib instead? uhh
+                    // wait so if you do something like ident ...stuff that might mean a macro
+                    // maybe all macros need to be invoked like fns?
+                    // yea like rust
+                    // so
 
+                    // ident (expr...) or ident {expr...} might mean a macro or something else, maybe we can change it to arcen(...)?
+                    // so you need to find the fn then to parse the invocation properly...?
+
+                    // so when you have something like expr {...} that could mean a whole bunch of things
+                    // depending on the first expr
+                    // uhh I can see a whole bunch of problems with that. So maybe in another pass like a macro pass in base?
+                    // should macro pass go first? uhh no
+
+                    // so a macro expr should have () {} or {} {} conditions
+                    // macro invocations through macro_name (e1, e2 e3 - e4) or macro_name {+expr, -expr e3 e5}
+                    // are generally parseable in base if their identifiers dont conflict with base' modifiers
+
+                    // exprs in a (paren body) or {scope body} allow literals, idents, unary and binary operators
+                    // maybe we also allow single_op expressions? in parenthesis and scopes
+                    // because thats better
+                }
+            }
         }
         BinaryOp (lhs, op, rhs) {
             match op {
+                // maybe just parse these directly?
                 Elvis {
                     // convert to an if statement? or jump to label?
                     // maybe just a generic condition?
-                    Condition(cond=lhs, lhs, rhs)
+                    let cond = lower(lhs)
+                    // kind of have to make sure it doesnt double compute
+                    Condition(cond, cond, rhs)
+                }
+                Ellipsis2 {
+                    Range(lower(expr), lower(expr))
                 }
                 // let someone else handle it
                 _ => BinaryOp (lhs, op, rhs)
@@ -48,13 +85,26 @@ lower: (expr: Expr) -> Expr {
         }
         UnaryOp (unary_type, op, expr) {
             match op {
-                UnaryPrefixOp (op, expr) {
-                    Exclamation {
-                        // search for the neq method impl or derive
-                        self.find_symbol(expr)
+                Prefix {
+                    // means PartialEq::neq
+                    // Exclamation {}
+                    Ellipsis2 {
+                        // 0..this numeric val
+                        // maybe reinterpret it as that?
+                        Range(BASE_NUMERIC_VALUE, lower(expr))
                     }
                 }
-                UnaryPostfixOp (expr, op) {}
+                Postfix {
+                    // propagate expr as primary type of a binary type
+                    QuestionMark {
+                        // the inference should be able to detect it if its the same type, or wrap an Ok/Err on core
+                        Return(expr)
+                    }
+                    // propagate expr as secondary type of a binary type
+                    Exclamation {
+                        Return(expr)
+                    }
+                }
             }
             
         }

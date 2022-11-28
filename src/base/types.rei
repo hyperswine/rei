@@ -10,6 +10,8 @@ Bits[N]: [bool: N]
 Numeric: Bits[u128]
 Numeric[T, N]: [Bits[T]; N]
 
+export BASE_NUMERIC_VALUE: 0
+
 # "*". In core, we also allow modifiers like r"*"
 BaseString: ()
 
@@ -45,30 +47,39 @@ Descriptor: {
 
 # Not ordered, simply the mechanism, no policy
 export Operator: enum {
+    @equivable
     Tilde: "~"
-    ExclamationMark
-    QuestionMark
+    ExclamationMark: "!"
+    QuestionMark: "?"
+    @equivable
     Ampersand: "&"
+    @equivable
     Superscript: "^"
-    Backtick
+    Backtick: "`"
     At: "@"
-    
+
+    @equivable
     VBar: "|"
     DoubleVBar: "||"
-    DollarSign
-    PercentSign
+    DollarSign: "$"
+    @equivable
+    PercentSign: "%"
 
-    Plus
-    Minus
-    Star
+    @equivable
+    Plus: "+"
+    @equivable
+    Minus: "-"
+    @equivable
+    Star: "*"
+    @equivable
     ForwardSlash: "/"
     BackSlash: "\\"
 
     Gt: ">"
     Gte: ">="
-    Lt
-    Lte
-    Equals
+    Lt: "<"
+    Lte: "<="
+    Equals: "="
     Equiv: "=="
 
     Colon: ":"
@@ -79,3 +90,21 @@ export Operator: enum {
     Ellipsis2: ".."
     Ellipsis3: "..."
 }
+
+// equivable operators mean something like += is taken as '+=' instead of '+', '='
+// and as a "assign to self"
+// so &= means specifically expr = expr & expr
+
+// what pattern is better, annotating or fn returning?
+// annotating can make it more concise which is good, also reduces duplication
+// but fn can make it more customisable and readable in some cases
+
+// expr op= expr
+// export operate_equable: () -> &[Operator] {
+//     [
+//         Tilde, 
+//     ]
+// }
+
+export trait UnaryOp[T, Rhs, Res]: (self, op_type: T, rhs: Rhs) -> Res
+export trait BinaryOp[T, UnaryType, Res]: (self, unary_type: UnaryType, op_type: T) -> Res

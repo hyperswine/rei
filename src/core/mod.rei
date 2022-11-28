@@ -2,6 +2,18 @@
     Contains useful primitives for writing low level software on supported platforms
 *#
 
+// you can also make CoreExpr: extend Expr
+
+use base::expr::Expr
+
+export lower: (expr: Expr) {
+    match expr {}
+}
+
+// how does a macro driver work? it should kind of just work I think, you should just call it on an fn
+// macro_expand(driver, &expr)
+// then it will try to find the exprs in the expr that match the order specified in driver
+
 // complete homoiconicity
 // always resolved and shadowed in this order: custom -> std -> core -> base
 // rei reflection => the main expr() fn is able to run all registered functions (at link or compile time)

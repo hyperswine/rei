@@ -20,6 +20,9 @@ export Expr: enum {
         UnaryOp: (UnaryType, Operator, Rhs)
     }
 
+    # expr.expr
+    FieldAccessExpr
+
     # {expr*}
     ScopeExpr
     # (expr) to prevent ListExpr which takes (expr*)?
@@ -53,6 +56,9 @@ export Expr: enum {
     ListExpr
     # [expr]
     IndexExpr
+    // Array constructor
+    // [expr; expr]
+    // ArrayConstructorExpr
 
     # (let|const|mut)
     SequentialDef: (VarModifier, Box[Rhs])
