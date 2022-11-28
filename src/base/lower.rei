@@ -28,9 +28,13 @@ eval_type: (expr: Expr) -> Ident? {}
 
 /*
     Initial Lowering. Basically involves expanding elements to their complete form
+    Only care about the "non overloadable operators in a non macro context"
 */
 lower: (expr: Expr) -> Expr {
     match expr {
+        Macro {
+
+        }
         BinaryOp (lhs, op, rhs) {
             match op {
                 Elvis {
@@ -38,18 +42,21 @@ lower: (expr: Expr) -> Expr {
                     // maybe just a generic condition?
                     Condition(cond=lhs, lhs, rhs)
                 }
+                // let someone else handle it
+                _ => BinaryOp (lhs, op, rhs)
             }
         }
-        // op expr
-        UnaryPrefixOp (op, expr) {
+        UnaryOp (unary_type, op, expr) {
             match op {
-                Exclamation {
-                    // search for the neq method impl or derive
-                    self.find_symbol(expr)
+                UnaryPrefixOp (op, expr) {
+                    Exclamation {
+                        // search for the neq method impl or derive
+                        self.find_symbol(expr)
+                    }
                 }
+                UnaryPostfixOp (expr, op) {}
             }
-        }
-        UnaryPostfixOp (expr, op) {
+            
         }
     }
 }

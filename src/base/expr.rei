@@ -71,6 +71,8 @@ export Expr: enum {
         Trait
         # X: impl... or X: impl Add...
         Impl
+        # Either scope or callable scope
+        Macro
     }
 }
 
