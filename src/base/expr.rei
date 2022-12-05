@@ -27,6 +27,10 @@ export Expr: enum {
 
     # {expr*}
     ScopeExpr
+    # ident {expr}
+    MacroScopeExpr
+    # ident ident[generic_params?] scope_expr?
+    MacroIdentExpr
     # (expr) to prevent ListExpr which takes (expr*)?
     ParenExpr
 
@@ -49,7 +53,7 @@ export Expr: enum {
 
     # var.field
     InstanceFieldExpr
-    # expr (args?)
+    # expr (args?). NOTE: can also be a macro. Since fns should be eagerly expanded, that is a thing
     CallExpr
 
     # [generic_item_expr*]

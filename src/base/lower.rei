@@ -66,8 +66,14 @@ lower: (expr: Expr) -> Expr {
                 }
             }
         }
+        // some are defined as A: Plus as well. Idk what to do
         BinaryOp (lhs, op, rhs) {
             match op {
+                Plus {
+                    // find the impl of X: { Plus: impl }
+                    // basically if the symtab is good enough, it should be quite good?
+                    // or require that def somewhere. If assumed to exist, can kinda continue. But we need the return type dont we? for type inference
+                }
                 // maybe just parse these directly?
                 Elvis {
                     // convert to an if statement? or jump to label?

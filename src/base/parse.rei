@@ -8,13 +8,30 @@ use std::expr::*
 export ParserError: Token
 export ParseRes: Expr | ParserError
 
+/*
+! the unwrap() is not as useful as providing a stronger error message and possible routes to recovery?
+*/
+
 Range: Range[Size]
+
+// for each method, reset the peek counter on Error
+implicit_peek_reset[T: Peek]: annotation (block: GeneralDef[T]) {
+    block.exprs.for_each(expr => {
+        match expr {
+            Fn {
+                // if method, then set peek = curr_index
+                if Err => block.reset_peek()
+            }
+        }
+    })
+}
 
 Parser: {
     // associated state / components
     tokens: Vec[(Token, Range)]
     curr_index: Size
     input_string: String
+    peek_index: Size
 
     // priority slots for expressions
     low_prio: []
@@ -26,17 +43,24 @@ Parser: {
 
     // Parser API
 
-    // peek next n tokens
-    // NOTE: default args and contracts work like arg_name: ArgType <modifiers> <contracts> <default>
-    // PEEK always returns a token. Thats why you should use accept() when possible, otherwise you might get EOF
-    peek: (&mut self, n: (Size > 0) = 1) -> Token => self.tokens.peek(n).Token.unwrap_or(Token::EOF)
-
     accept: (&mut self, token: Token) -> LexData? => self.tokens[curr_index].Token == token? LexData(token) : Err()
 
     expect: (&mut self, token: token) -> LexData => self.accept(token).unwrap()
+
+    // impl Peek also works but meh, just stick to the style as laid out in your style.rei
+    // wait a minute.. cant you just use peek instead of accept?
+    Peek: impl {
+        reset_peek: (&mut self) => self.peek_index = self.curr_index
+
+        // peek next n tokens
+        // NOTE: default args and contracts work like arg_name: ArgType <modifiers> <contracts> <default>
+        // PEEK always returns a token. Thats why you should use accept() when possible, otherwise you might get EOF
+        peek: (&mut self, n: (Size > 0) = 1) -> Token => self.tokens.peek(n).Token.unwrap_or(Token::EOF)
+    }
 }
 
 // Base expressions
+@implicit_peek_reset
 Parser: extend {
     // doing it this way gives you maximum control and freedom
     expr: (&mut self) -> ParseRes {
@@ -162,7 +186,7 @@ Parser: extend {
         // NOTE: a return in for_each returns from the current outer scope
         // BINARY_OPERATORS.first(b => self.accept(b))?
         // let bin_operator = BINARY_OPERATORS.first(b => self.accept(b)).unwrap()
-        let bin_op = BINARY_OPERATORS[self.next()].unwrap()
+        let bin_op = Operators[self.next()].unwrap()
 
         let rhs = self.expr().unwrap()
 
@@ -202,6 +226,17 @@ Parser: extend {
     }
 
     where_item: (&mut self) -> ParseRes => self.condition_expr() ?: self.expr()?
+
+    // is it possible to implicitly reset the peek counter per function on a return Error?
+    // maybe just remember it on the base expr? no cause you need to call the next one right afterwards on the same expr
+    // so reset it on Error or use effects or something. Or have an implicit way to track the peek counter per call with a marking or something
+    // maybe a marker field like peek: Int
+    macro_expr: (&mut self) {
+        // self.peek + 1
+        let ident = self.ident_expr()?
+        // check either scope or ident
+        let ident2 = self.ident_expr()?
+    }
 }
 
 // BinaryOp: ()

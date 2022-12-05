@@ -45,6 +45,11 @@ Descriptor: {
     two: Bits[2]
 }
 
+# return a list of operators
+export Operators: () -> _ {
+    Operator.for_each(o => o.to_string())
+}
+
 # Not ordered, simply the mechanism, no policy
 export Operator: enum {
     @equivable
