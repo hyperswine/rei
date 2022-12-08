@@ -7,6 +7,11 @@ use super::types::[Operator]
 export Lhs: Expr
 export Rhs: Expr
 
+// in list-like scopes you dont need commas
+// otherwise you do
+// X: A, B
+// X: (A B)
+
 # Extendable by core and std. Or by another compiler suite/"builtin library"
 export Expr: enum {
     # utf8 namespaced string
