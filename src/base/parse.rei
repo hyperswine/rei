@@ -79,8 +79,6 @@ Parser: extend {
         Ok(Variadic(expr))
     }
 
-    // does binop do everything? yea cause it calls expr() again
-
     // low priority
     group_expr: (&mut self) -> ParseRes {
         self.accept(Token::LParen)?
@@ -92,7 +90,8 @@ Parser: extend {
         Ok(Group(expr))
     }
 
-    fn_decl: (&mut self) -> ParseRes {
+    // fn or callable maybe
+    callable_decl: (&mut self) -> ParseRes {
         tuple_decl()!
 
         let fn_type = self.accept(Token::Annotation)
@@ -103,7 +102,7 @@ Parser: extend {
 
         let ret_type_expr = self.ret_type_expr()
 
-        Ok(Fn(fn_type, params, ret_type_expr))
+        Ok(GeneralDef::Callable(fn_type, params, ret_type_expr))
     }
 
     namespaced_type_expr: (&mut self) -> ParseRes {
@@ -193,9 +192,10 @@ Parser: extend {
         bin_op(lhs, bin_op, rhs)
     }
 
+    # find a unary expression with the operator before the payload
     unary_op_prefix: (&mut self) -> ParseRes {
         // first knows of Result<T, E>
-        let unary_op = UNARY_OPS.first(u => self.accept(u))?
+        let unary_op = UnaryOps.first(u => self.accept(u))?
         Ok(Unary(Prefix, unary_op, self.expr()))
     }
 
@@ -227,16 +227,29 @@ Parser: extend {
 
     where_item: (&mut self) -> ParseRes => self.condition_expr() ?: self.expr()?
 
+    macro_invocation: (&mut self) -> ParseRes {
+        // maybe have a procedural parser?
+        let x = self.ident_expr()?
+    }
+
+    ident_expr: (&mut self) -> ParseRes {
+        // note: a _ anywhere directly in a fn body means its unimplemented at that point, so if it gets there, it should panic
+        // in a signature, it panics at compile time
+        // _
+        // find baseident :: baseident :: baseident, maybe thats possible directly?
+        self.accept(Token::NSIdentifier)?
+    }
+
     // is it possible to implicitly reset the peek counter per function on a return Error?
     // maybe just remember it on the base expr? no cause you need to call the next one right afterwards on the same expr
     // so reset it on Error or use effects or something. Or have an implicit way to track the peek counter per call with a marking or something
     // maybe a marker field like peek: Int
-    macro_expr: (&mut self) {
-        // self.peek + 1
-        let ident = self.ident_expr()?
-        // check either scope or ident
-        let ident2 = self.ident_expr()?
-    }
+    // macro_expr: (&mut self) {
+    //     // self.peek + 1
+    //     let ident = self.ident_expr()?
+    //     // check either scope or ident
+    //     let ident2 = self.ident_expr()?
+    // }
 }
 
 // BinaryOp: ()
