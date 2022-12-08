@@ -45,9 +45,22 @@ Descriptor: {
     two: Bits[2]
 }
 
+/*
+    Operator Expressions
+*/
+
+export trait UnaryOp[T, Rhs, Res]: (self, op_type: T, rhs: Rhs) -> Res
+export trait BinaryOp[T, UnaryType, Res]: (self, unary_type: UnaryType, op_type: T) -> Res
+
 # return a list of operators
 export Operators: () -> _ {
     Operator.for_each(o => o.to_string())
+}
+
+// maybe do have unary and binary ops after all?
+export UnaryOps: () -> _ {
+    // some ops like star can be chained like **var, check for those too
+    [Tilde ExclamationMark QuestionMark Star Ampersand]
 }
 
 # Not ordered, simply the mechanism, no policy
@@ -110,6 +123,3 @@ export Operator: enum {
 //         Tilde, 
 //     ]
 // }
-
-export trait UnaryOp[T, Rhs, Res]: (self, op_type: T, rhs: Rhs) -> Res
-export trait BinaryOp[T, UnaryType, Res]: (self, unary_type: UnaryType, op_type: T) -> Res
