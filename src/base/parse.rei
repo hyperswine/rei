@@ -15,7 +15,7 @@ export ParseRes: Expr | ParserError
 Range: Range[Size]
 
 // for each method, reset the peek counter on Error
-implicit_peek_reset[T: Peek]: annotation (block: GeneralDef[T]) {
+implicit_peek_reset[T: Iter::Peek]: annotation (block: GeneralDef[T]) {
     block.exprs.for_each(expr => {
         match expr {
             Fn {
@@ -42,22 +42,24 @@ Parser: {
     new: (tokens: _, input_string: _) -> Self => Self {tokens, curr_index: 0, input_string }
 
     // Parser API
-
-    accept: (&mut self, token: Token) -> LexData? => self.tokens[curr_index].Token == token? LexData(token) : Err()
+    accept: (&mut self, token: Token) -> LexData? => _accept(self.curr_index) == token? LexData(token) : Err()
 
     expect: (&mut self, token: token) -> LexData => self.accept(token).unwrap()
 
-    // impl Peek also works but meh, just stick to the style as laid out in your style.rei
-    // wait a minute.. cant you just use peek instead of accept?
-    Peek: impl {
+    Iter::Peek: impl {
         reset_peek: (&mut self) => self.peek_index = self.curr_index
 
-        // peek next n tokens
-        // NOTE: default args and contracts work like arg_name: ArgType <modifiers> <contracts> <default>
-        // PEEK always returns a token. Thats why you should use accept() when possible, otherwise you might get EOF
-        peek: (&mut self, n: (Size > 0) = 1) -> Token => self.tokens.peek(n).Token.unwrap_or(Token::EOF)
+        peek: (&mut self, n: (Size > 0) = 1) -> Token => _accept(self.peek_index, n)
+    }
+
+    // more generic accept
+    _accept: (index: &mut Index, increment: Int) -> Token {
+        index += increment
+        self.tokens[index].Token.unwrap_or(Token::EOF)
     }
 }
+
+// NOTE: default args and contracts work like arg_name: ArgType <modifiers> <contracts> <default>
 
 // Base expressions
 @implicit_peek_reset
@@ -140,9 +142,7 @@ Parser: extend {
         let obj_type = self.obj_type_expr().unwrap()
         mut res = Object()
 
-        // get scope or arrow expr
-        // NOTE: the ?: auto unwraps the value
-        // dont worry about the body type. Its just an expr in the node but we care about it here
+        //* the ?: operator auto unwraps the value
         res.body = self.scope_expr() ?: self.arrow_expr().unwrap()
 
         // objects can also have a default value
