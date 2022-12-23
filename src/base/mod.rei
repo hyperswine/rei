@@ -1,5 +1,5 @@
 #*
-    Base Rei Compiler, by Jasen
+    Base Rei Compiler, by Jasen Qin
 *#
 
 /*

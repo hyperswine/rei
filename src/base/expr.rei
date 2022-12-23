@@ -2,7 +2,7 @@
     Reusable Expressions
 *#
 
-use super::types::[Operator]
+use super::[Operator]
 
 export Lhs: Expr
 export Rhs: Expr
