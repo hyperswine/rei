@@ -13,6 +13,7 @@ expr:
     | comma_expr
     | empty_expr
     | bracket_list_expr
+    | ternary_expr
     | unary_op
     | binary_op
     | general_def
@@ -33,6 +34,7 @@ empty_expr: "(" ")"
 bracket_expr: "[" expr "]"
 bracket_list_expr: bracket_expr
 var_def_expr: "let" | "mut" | "const" ident "=" expr
+ternary_expr: (expr "?" expr ":" expr) | (expr "?:" expr)
 
 keywords: "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | "impl"
 
