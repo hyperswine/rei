@@ -18,6 +18,7 @@ expr:
     | general_def
     | scope_expr
     | modified_scope_expr
+    | var_def_expr
 
 binary_op: expr binary_operator expr
 scope_expr: "{" expr* "}"
@@ -31,13 +32,14 @@ comma_expr: expr "," expr
 empty_expr: "(" ")"
 bracket_expr: "[" expr "]"
 bracket_list_expr: bracket_expr
+var_def_expr: "let" | "mut" | "const" ident "=" expr
 
 keywords: "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | "impl"
 
 // increasing order of precedence
-binary_operator: "*" | "/" | "+" | "-" | "==" | "="
+binary_operator: |"&" | "|" | "^" | "*" | "/" | "+" | "-" | "==" | "="
 postfix_unary_operator: "?" | "!"
-prefix_unary_operator: "*" | "&"
+prefix_unary_operator: "~" | "*" | "&"
 ```
 
 ## Examples
