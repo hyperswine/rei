@@ -42,6 +42,8 @@ keywords: "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | 
 binary_operator: |"&" | "|" | "^" | "*" | "/" | "+" | "-" | "==" | "="
 postfix_unary_operator: "?" | "!"
 prefix_unary_operator: "~" | "*" | "&"
+
+refinement_expr: expr
 ```
 
 ## Examples
@@ -56,4 +58,33 @@ prefix_unary_operator: "~" | "*" | "&"
 *3 + 1
 // *3 parsed as unary prefix
 // + 1
+
+f: (x: Int)
+// the following two are equivalent. If you have Int() and = at once, that is an error
+// or maybe just x: Int = Int(5)
+// depends on style guide and styler
+f: (x: Int(5))
+f: (x: Int = 5)
+f: (x: Int < 5)
+f: (x: Int < 5, < 10, = 10)
+
+f: (x: Int < 5, < 10, y: String = "f")
+f: (x: Int lessthan(5), y: String)
+
+// normal generic
+T[T1, T2]: {
+    a: T1
+}
+
+// depends on the value of T1, rather than just T1
+// functions that take in T with v now are able to differentiate between different variants of T
+T[v T1]: {
+    a: T1
+}
+
+T: impl Plus (v self, v Self) -> Self => ... 
+
+f: (t1: v T, t2: v T) {
+    t1 + t2
+}
 ```
