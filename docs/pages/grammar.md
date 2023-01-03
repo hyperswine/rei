@@ -10,7 +10,6 @@ Expressions, expressions, expressions.
 ```rust
 expr: 
     | paren_expr
-    | comma_expr
     | empty_expr
     | bracket_list_expr
     | ternary_expr
@@ -20,14 +19,33 @@ expr:
     | scope_expr
     | modified_scope_expr
     | var_def_expr
+    | literal_expr
+    | ident_expr
+    | comma_expr
 
 binary_op: expr binary_operator expr
 scope_expr: "{" expr* "}"
 modified_scope_expr: m1_expr | m2_expr
-m1_expr: ident scope_expr
-m2_expr: ident macro_params? scope_expr
-general_def: ident generic_params? ":" expr
+m1_expr: raw_ident scope_expr
+m2_expr: raw_ident macro_params? scope_expr
+general_def: raw_ident generic_param_expr? ":" general_def_type
+
+// functions, value constructors, callables, parameterised expressions
+general_def_type: parameterised_expr
 parameterised_expr: paren_params | bracket_params | curly_brace_params
+params: param ("," param)*
+param: raw_ident type_expr? refinements?
+type_expr: ":" ident arg_expr?
+refinements: refinement ("," refinement)*
+refinement: unary_refinement_op expr
+generic_param_expr: "[" generic_param* "]"
+generic_param: (raw_ident ":")? ident impl_expr?
+
+// maybe a self contained expression?
+// cant encode 1 equals to, mutual exclusion with default call
+
+raw_ident: ...
+ident: namespaced_ident
 
 comma_expr: expr "," expr
 empty_expr: "(" ")"
@@ -42,6 +60,7 @@ keywords: "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | 
 binary_operator: |"&" | "|" | "^" | "*" | "/" | "+" | "-" | "==" | "="
 postfix_unary_operator: "?" | "!"
 prefix_unary_operator: "~" | "*" | "&"
+unary_refinement_op: binary_operator
 
 refinement_expr: expr
 ```
