@@ -1,0 +1,10 @@
+module Main where
+
+import Text.Parsec
+
+main :: IO ()
+main = do
+    putStrLn "Hello, Haskell!"
+
+stringParser:: Parsec String st String
+stringParser = many anyChar
