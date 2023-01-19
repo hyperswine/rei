@@ -2,6 +2,7 @@ module Expr where
 
 import Text.Parsec
 import Text.ParserCombinators.Parsec
+-- import Test.HUnit
 
 data GeneralDefModifier
   = Alias
@@ -147,3 +148,7 @@ parenParamList = do
   param <- many1 anyChar
   char ')'
   return param
+
+-- parseTest parameterisedExpr "(a, b, c)" 
+-- test1 = TestCase (assertEqual "for (foo 3)," 3 (foo 3))
+-- foo 3 = 3

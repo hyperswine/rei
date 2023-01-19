@@ -1,5 +1,6 @@
-resolver:
-  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/7.yaml
+resolver: ghc-9.0.2
 
 packages:
 - .
+
+# ghc-options: -Wall
