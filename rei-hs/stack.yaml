@@ -1,4 +1,4 @@
-resolver: ghc-9.0.2
+resolver: ghc-9.4.4
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -10,12 +10,12 @@ resolver: ghc-9.0.2
 #   - wai
 
 packages:
-- .
+  - .
 
 extra-deps:
-- HUnit-1.6.2.0
-- parsec-3.1.16.0
-- call-stack-0.4.0
+  - HUnit-1.6.2.0
+  - parsec-3.1.16.0
+  - call-stack-0.4.0
 
 # Control whether we use the GHC we find on the path
 # system-ghc: true
@@ -23,7 +23,6 @@ extra-deps:
 # Require a specific version of stack, using version ranges
 # require-stack-version: -any # Default
 require-stack-version: ">=2.9"
-
 # Extra directories used by stack for building
 # extra-include-dirs: [/path/to/dir]
 # extra-lib-dirs: [/path/to/dir]

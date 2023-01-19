@@ -1,1 +1,3 @@
-# rei-hs
+# Rei Hs
+
+Haskell Implementation of Rei.
