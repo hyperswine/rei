@@ -129,7 +129,7 @@ data OverloableBinaryOperator
 --  PARSING
 --------------------
 
-parameterisedExpr :: Parser [String]
+parameterisedExpr :: Parser String
 parameterisedExpr = many1 parenParamList
 
 parenParamList :: Parser String

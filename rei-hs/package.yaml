@@ -48,7 +48,7 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - rei-hs
-      # - parsec
+      - parsec
 
 tests:
   rei-hs-test:
@@ -61,3 +61,4 @@ tests:
     dependencies:
       - rei-hs
       - HUnit
+      - parsec

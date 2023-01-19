@@ -1,6 +1,7 @@
 --Integration Tests
 
 import Test.HUnit
+import Text.Parsec
 import Expr
 
 main :: IO ()
@@ -10,4 +11,4 @@ tests :: Test
 tests = TestList [ testParseParameterisedExpr ]
 
 testParseParameterisedExpr :: Test
-testParseParameterisedExpr = TestCase $ assertEqual "Parsing (a, b, c) should succeed" (Right "(a, b, c)") (parameterisedExpr "(a, b, c)")
+testParseParameterisedExpr = TestCase $ assertEqual "Parsing (a, b, c) should succeed" (Right ["(a, b, c)"]) (parse parameterisedExpr "" "(a, b, c)")
