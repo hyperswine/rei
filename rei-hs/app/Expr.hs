@@ -1,6 +1,7 @@
 module Expr where
 
 import Text.Parsec
+import Text.ParserCombinators.Parsec
 
 data GeneralDefModifier
   = Alias
@@ -136,3 +137,13 @@ data OverloableBinaryOperator
 --------------------
 --  PARSING
 --------------------
+
+parameterisedExpr :: Parser [String]
+parameterisedExpr = many1 parenParamList
+
+parenParamList :: Parser String
+parenParamList = do
+  char '('
+  param <- many1 anyChar
+  char ')'
+  return param

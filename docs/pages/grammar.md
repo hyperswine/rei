@@ -32,8 +32,8 @@ general_def: raw_ident generic_param_expr? ":" general_def_type
 
 // functions, value constructors, callables, parameterised expressions
 general_def_type: parameterised_expr
-parameterised_expr: paren_params | bracket_params | curly_brace_params
-params: param ("," param)*
+parameterised_expr: paren_param_list+
+paren_param_list: "(" param ("," param)* ")"
 param: raw_ident type_expr? refinements?
 type_expr: ":" ident arg_expr?
 refinements: refinement ("," refinement)*
