@@ -1,12 +1,6 @@
-module Main where
+module Main (main) where
 
-import Data.String
-import Expr
-import Text.Parsec
--- import Test.HUnit
+import Lib
 
 main :: IO ()
-main = putStrLn "Hello, Rei!"
-
-stringParser :: Parsec String st String
-stringParser = many anyChar
+main = someFunc
