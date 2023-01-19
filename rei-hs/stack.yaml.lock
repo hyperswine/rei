@@ -10,5 +10,19 @@ packages:
       sha256: 4f20a5a33866171260d0ee1e256c27f53cc84d37a68d498c3e12347f4e3d05b4
       size: 878
   original:
-    hackage: HUnit-1.6.2.0@sha256:1a79174e8af616117ad39464cac9de205ca923da6582825e97c10786fda933a4,1588
+    hackage: HUnit-1.6.2.0
+- completed:
+    hackage: parsec-3.1.16.0@sha256:32aecd6f34ae08c1be99d9186a3b17a37e0aa52b9a431b3951422e6dddee0d4a,4691
+    pantry-tree:
+      sha256: c6bfaea0a6f5312ce69b3fc04402d4990d5d874ab9a08f7eb6cfc671644ab336
+      size: 2698
+  original:
+    hackage: parsec-3.1.16.0
+- completed:
+    hackage: call-stack-0.4.0@sha256:ac44d2c00931dc20b01750da8c92ec443eb63a7231e8550188cb2ac2385f7feb,1200
+    pantry-tree:
+      sha256: 04134fa69cdd824b4e4bb7f77e7173e0705f27deabdbbf99549c549400191e1e
+      size: 501
+  original:
+    hackage: call-stack-0.4.0
 snapshots: []

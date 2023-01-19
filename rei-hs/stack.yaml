@@ -2,7 +2,6 @@ resolver: ghc-9.0.2
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
-#
 # packages:
 # - some-directory
 # - https://example.com/foo/bar/baz-0.0.2.tar.gz
@@ -14,7 +13,9 @@ packages:
 - .
 
 extra-deps:
-- HUnit-1.6.2.0@sha256:1a79174e8af616117ad39464cac9de205ca923da6582825e97c10786fda933a4,1588
+- HUnit-1.6.2.0
+- parsec-3.1.16.0
+- call-stack-0.4.0
 
 # Control whether we use the GHC we find on the path
 # system-ghc: true
