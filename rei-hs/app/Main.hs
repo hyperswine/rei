@@ -1,6 +1,7 @@
 module Main where
 
 import Text.Parsec
+import Data.String
 
 main :: IO ()
 main = do
@@ -44,10 +45,10 @@ data Expr = LiteralExpr Primitive
           | Call Expr Args
           | EvalExpr Expr
           | ParameterizedExpr [Expr] ReturnType Expr
-          | Enum [EnumItem]
-          | Complex [Expr]
-          | Trait IdentifierExpr [TraitExpr]
-          | Impl IdentifierExpr [ImplItem]
+        --   | Enum [EnumItem]
+        --   | Object [Expr]
+        --   | Trait IdentifierExpr [TraitExpr]
+        --   | Impl IdentifierExpr [ImplItem]
           | Annotation Args
           | MacroBodyExpr Expr
           | VariableDef TypeModifier Expr Expr
@@ -59,3 +60,38 @@ data Expr = LiteralExpr Primitive
           | ScopeExpr [Expr]
           | ArrowExpr Expr
           deriving (Eq, Show)
+
+data UnaryType = Prefix | Postfix deriving (Eq, Show)
+
+type ObjType = Expr
+type ReturnType = Expr
+
+data Numeric = Numeric { val :: String } deriving (Eq, Show)
+
+-- class ToString a where
+--     toString :: a -> String
+
+instance ToString Primitive where
+    toString (Primitive (String s)) = s
+    toString (Primitive Empty) = "()"
+    toString _ = error "Wrong type!"
+
+instance (Read a) => From String a where
+    from = read
+
+instance From Double a where
+    from = fromRational . toRational
+
+instance From Bool a where
+    from = fromEnum
+
+type Namespace = String
+type ImportItem = String
+
+data TypeModifier = Let | Mut | Const deriving (Eq, Show)
+
+data ReservedOperator = DollarSign | At | Hash | Eq | Dot | Comma | QuestionMark | Exclamation | Elvis | UnconditionalPropagate Bool | Colon | Semicolon | DoubleColon deriving (Eq, Show)
+
+data OverloableUnaryOperator = PlusPlus | MinusMinus deriving (Eq, Show)
+
+data OverloableBinaryOperator = Equiv | Lt | Gt | Gte | Lte | And | Or | Mult | Div | Add | Sub | Modulo | PlusEq | MinusEq | MultEq | DivEq | AndEq | OrEq | XorEq | DoubleMult | DoubleDiv | LeftShift | RightShift | BitwiseAnd | BitwiseOr | BitwiseNot | BitwiseXor deriving (Eq, Show)
