@@ -1,97 +1,13 @@
 module Main where
 
-import Text.Parsec
 import Data.String
+-- error in ghci
+import Expr
+import Text.Parsec
 
 main :: IO ()
 main = do
-    putStrLn "Hello, Haskell!"
+  putStrLn "Hello, Haskell!"
 
-stringParser:: Parsec String st String
+stringParser :: Parsec String st String
 stringParser = many anyChar
-
-data GeneralDefModifier = Alias
-                    | Parameterized
-                    | Enum
-                    | Object
-                    | Extend
-                    | Trait
-                    | Impl
-                    | Replace
-                    | Mod
-                    deriving (Eq, Show)
-
-type Generics = [Expr]
-type RefinementExpr = Expr
-type TypeExpr = Expr
-type RawIdentExpr = String
-type IdentifierExpr = Expr
-type UnaryExpr = Expr
-type GeneralDefRhs = Expr
-type ImplRefinement = [Expr]
-type MultipleParamExpr = [Expr]
-data GenericParamType = Dependent | TypeParam deriving (Eq, Show)
-type EnumItem = Expr
-
-data Expr = LiteralExpr Primitive
-          | IdentExpr [String]
-          | BinaryOp OverloableBinaryOperator Expr Expr
-          | UnaryOp OverloableUnaryOperator Expr UnaryType
-          | ParenExpr Expr
-          | GeneralDef RawIdentExpr Generics GeneralDefRhs
-          | Param IdentifierExpr TypeExpr [RefinementExpr]
-          | Refinement UnaryExpr
-          | GenericParam (Maybe RawIdentExpr) IdentifierExpr ImplRefinement GenericParamType
-          | Call Expr Args
-          | EvalExpr Expr
-          | ParameterizedExpr [Expr] ReturnType Expr
-        --   | Enum [EnumItem]
-        --   | Object [Expr]
-        --   | Trait IdentifierExpr [TraitExpr]
-        --   | Impl IdentifierExpr [ImplItem]
-          | Annotation Args
-          | MacroBodyExpr Expr
-          | VariableDef TypeModifier Expr Expr
-          | VariableRedef Expr Expr
-          | ExportExpr Module
-          | Require Namespace [ImportItem]
-          | If Expr Expr Expr
-          | Loop LoopType Expr Expr
-          | ScopeExpr [Expr]
-          | ArrowExpr Expr
-          deriving (Eq, Show)
-
-data UnaryType = Prefix | Postfix deriving (Eq, Show)
-
-type ObjType = Expr
-type ReturnType = Expr
-
-data Numeric = Numeric { val :: String } deriving (Eq, Show)
-
--- class ToString a where
---     toString :: a -> String
-
-instance ToString Primitive where
-    toString (Primitive (String s)) = s
-    toString (Primitive Empty) = "()"
-    toString _ = error "Wrong type!"
-
-instance (Read a) => From String a where
-    from = read
-
-instance From Double a where
-    from = fromRational . toRational
-
-instance From Bool a where
-    from = fromEnum
-
-type Namespace = String
-type ImportItem = String
-
-data TypeModifier = Let | Mut | Const deriving (Eq, Show)
-
-data ReservedOperator = DollarSign | At | Hash | Eq | Dot | Comma | QuestionMark | Exclamation | Elvis | UnconditionalPropagate Bool | Colon | Semicolon | DoubleColon deriving (Eq, Show)
-
-data OverloableUnaryOperator = PlusPlus | MinusMinus deriving (Eq, Show)
-
-data OverloableBinaryOperator = Equiv | Lt | Gt | Gte | Lte | And | Or | Mult | Div | Add | Sub | Modulo | PlusEq | MinusEq | MultEq | DivEq | AndEq | OrEq | XorEq | DoubleMult | DoubleDiv | LeftShift | RightShift | BitwiseAnd | BitwiseOr | BitwiseNot | BitwiseXor deriving (Eq, Show)
