@@ -35,6 +35,8 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+    - parsec
 
 executables:
   rei-hs-exe:
@@ -46,7 +48,7 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - rei-hs
-      - parsec
+      # - parsec
 
 tests:
   rei-hs-test:

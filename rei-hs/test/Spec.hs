@@ -7,9 +7,7 @@ main :: IO ()
 main = runTestTTAndExit tests
 
 tests :: Test
-tests =
-  TestList
-    [ TestLabel
-        "test2"
-        (TestCase (assertEqual "(1 :: Integer) should equal (1 :: Integer)" (1 :: Integer) (1 :: Integer)))
-    ]
+tests = TestList [ testParseParameterisedExpr ]
+
+testParseParameterisedExpr :: Test
+testParseParameterisedExpr = TestCase $ assertEqual "Parsing (a, b, c) should succeed" (Right "(a, b, c)") (parameterisedExpr "(a, b, c)")
