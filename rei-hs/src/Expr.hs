@@ -130,7 +130,7 @@ data OverloableBinaryOperator
 --------------------
 
 parameterisedExpr :: Parser String
-parameterisedExpr = many1 parenParamList
+parameterisedExpr = concat <$> many1 parenParamList
 
 parenParamList :: Parser String
 parenParamList = do
