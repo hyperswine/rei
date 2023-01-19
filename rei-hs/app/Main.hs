@@ -1,13 +1,11 @@
 module Main where
 
 import Data.String
--- error in ghci
 import Expr
 import Text.Parsec
 
 main :: IO ()
-main = do
-  putStrLn "Hello, Haskell!"
+main = putStrLn "Hello, Rei!"
 
 stringParser :: Parsec String st String
 stringParser = many anyChar
