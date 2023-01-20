@@ -132,6 +132,7 @@ data OverloableBinaryOperator
 parameterisedExpr :: Parser String
 parameterisedExpr = concat <$> many1 parenParamList
 
+-- either use this in a parser or get the string part?
 parenParamList :: Parser String
 parenParamList = do
   char '('
