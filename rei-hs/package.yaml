@@ -21,6 +21,7 @@ description: Please see the README on GitHub at <https://github.com/hyperswine/r
 
 dependencies:
   - base >= 4.7 && < 5
+  - containers
 
 ghc-options:
   - -Wall
@@ -37,6 +38,7 @@ library:
   source-dirs: src
   dependencies:
     - parsec
+    - containers
 
 executables:
   rei-hs-exe:
@@ -49,7 +51,7 @@ executables:
     dependencies:
       - rei-hs
       - parsec
-
+      
 tests:
   rei-hs-test:
     main: Spec.hs

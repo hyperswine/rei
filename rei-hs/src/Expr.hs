@@ -2,6 +2,7 @@ module Expr where
 
 import Text.Parsec
 import Text.ParserCombinators.Parsec
+import qualified Data.Map as Map
 
 data GeneralDefModifier
   = Alias
@@ -124,6 +125,22 @@ data OverloableBinaryOperator
   | BitwiseNot
   | BitwiseXor
   deriving (Eq, Show)
+
+-- operator :: String -> OverloableBinaryOperator
+-- operator a | a == ">" = Gt
+--   | a == "<" = Lt
+--   | a == "<=" = Lte
+--   | a == ">=" = Gte
+--   | otherwise = BitwiseXor
+
+-- getOperator :: Map.Map String OverloableBinaryOperator
+getOperator = Map.fromList [("<", Lt), (">", Gt), ("<=", Lte), (">=", Gte), ("^", BitwiseXor)]
+
+type OperatorMap = Map.Map String OverloableBinaryOperator;
+
+operator:: String -> Maybe OverloableBinaryOperator
+operator a = Map.lookup a getOperator
+
 
 --------------------
 --  PARSING

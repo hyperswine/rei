@@ -9,4 +9,5 @@ tests :: Test
 tests = TestList [ testParseParameterisedExpr ]
 
 testParseParameterisedExpr :: Test
+-- doesnt work
 testParseParameterisedExpr = TestCase $ assertEqual "Parsing (a, b, c) should succeed" (Right ["(a, b, c)"]) (parse parameterisedExpr "" "(a, b, c)")
