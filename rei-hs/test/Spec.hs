@@ -1,5 +1,3 @@
---Integration Tests
-
 import Test.HUnit
 import Text.Parsec
 import Expr
