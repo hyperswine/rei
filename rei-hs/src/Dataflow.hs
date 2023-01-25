@@ -1,8 +1,13 @@
 module Dataflow where
+import qualified Data.Map as Map
 
 data Node = Data | Execute
 
 data AtomicInstruction = Add | Sub | Mul | Div | Copy | Run
+data Instruction = AtomicInstruction Source Source Dest
+type Operand = Int
+type Source = Operand
+type Dest = Operand
 
 -- Node is of N bits
 -- all data is represented in N bits, even instructions themselves
@@ -22,3 +27,14 @@ data AtomicInstruction = Add | Sub | Mul | Div | Copy | Run
 -- I still dont know how you can run everything concurrently and "when the data is available"
 -- maybe it runs each time the data changes?
 
+-- global clock
+-- if data changes, nodes affected will be run
+
+-- MODEL A': attached node as an address or 64 bit ID, so usually 2 64 bit IDs
+-- executeInstruction ins | Add = +
+
+-- always start at a node, use that node to CAM in?
+-- no like an entire map of nodes
+
+nodes :: Map.Map String Node
+nodes = Map.empty
