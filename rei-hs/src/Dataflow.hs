@@ -2,12 +2,16 @@ module Dataflow where
 import qualified Data.Map as Map
 
 data Node = Data | Execute
+-- data NNode = NNode Node Bool
 
 data AtomicInstruction = Add | Sub | Mul | Div | Copy | Run
-data Instruction = AtomicInstruction Source Source Dest
+data BinaryInstruction = BinaryInstruction AtomicInstruction Source Source Dest
+data UnaryInstruction = UnaryInstruction AtomicInstruction Source Dest
 type Operand = Int
 type Source = Operand
 type Dest = Operand
+type ProgramCounter = Int
+type Stack = Node
 
 -- Node is of N bits
 -- all data is represented in N bits, even instructions themselves
@@ -38,3 +42,5 @@ type Dest = Operand
 
 nodes :: Map.Map String Node
 nodes = Map.empty
+
+data Context = Context Node Stack ProgramCounter
