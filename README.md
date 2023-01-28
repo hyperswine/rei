@@ -1,5 +1,7 @@
 # Rei
 
+VERSION 1.
+
 Query-based Compilation (lexing, parsing, codegen API), Project Management, Standard Libraries.
 
 ![Rei](/docs/ReiLogo.png)
