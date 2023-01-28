@@ -193,7 +193,7 @@ Parser: extend {
     }
 
     // low priority
-    group_expr: (&mut self) -> ParseRes {
+    paren_expr: (&mut self) -> ParseRes {
         self.accept(Token::LParen)?
 
         let expr = self.expr()
@@ -363,6 +363,10 @@ Parser: extend {
     //     // check either scope or ident
     //     let ident2 = self.ident_expr()?
     // }
+}
+
+Parser: extend {
+
 }
 
 // BinaryOp: ()
