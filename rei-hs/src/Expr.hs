@@ -156,3 +156,11 @@ parenParamList = do
   param <- many1 anyChar
   char ')'
   return param
+
+generalDef :: Parsec String () (String, Maybe (String, String), String)
+generalDef = do
+  rawIdent <- many1 letter
+  genericParamExpr <- optionMaybe (string "[" *> many (noneOf "]") <* string "]")
+  string ":"
+  generalDefType <- many1 letter
+  return (rawIdent, genericParamExpr, generalDefType)

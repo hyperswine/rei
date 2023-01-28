@@ -11,58 +11,78 @@ Expressions, expressions, expressions.
 expr: 
     | paren_expr
     | empty_expr
-    | bracket_list_expr
-    | ternary_expr
+    // | bracket_list_expr
     | unary_op
     | binary_op
+    | ternary_op
     | general_def
     | scope_expr
     | modified_scope_expr
     | var_def_expr
     | literal_expr
     | ident_expr
-    | comma_expr
+    | ident_list_expr
+    // | comma_expr
 
-binary_op: expr binary_operator expr
-scope_expr: "{" expr* "}"
-modified_scope_expr: m1_expr | m2_expr
-m1_expr: raw_ident scope_expr
-m2_expr: raw_ident macro_params? scope_expr
+// GENERAL DEF
 general_def: raw_ident generic_param_expr? ":" general_def_type
+general_def_type: parameterised_expr | ("extend"? algebraic_expr)
+generic_param_expr: "[" generic_param* "]"
+generic_param: (raw_ident ":")? ident impl_expr?
 
-// functions, value constructors, callables, parameterised expressions
-general_def_type: parameterised_expr
+// ALGEBRAIC
+algebraic_expr: enum_expr | product_expr
+enum_expr: "enum" scope_expr
+
+// PARAMETERISED
 parameterised_expr: paren_param_list+
 paren_param_list: "(" param ("," param)* ")"
 param: raw_ident type_expr? refinements?
 type_expr: ":" ident arg_expr?
 refinements: refinement ("," refinement)*
-refinement: unary_refinement_op expr
-generic_param_expr: "[" generic_param* "]"
-generic_param: (raw_ident ":")? ident impl_expr?
+refinement: unary_refinement_op ident_or_literal
+
+impl_expr: "impl" ident ("+" ident)*
 
 // maybe a self contained expression?
 // cant encode 1 equals to, mutual exclusion with default call
 
-raw_ident: ...
+raw_ident: pub_ident | priv_ident
+priv_ident: "_" pub_ident
+pub_ident: "[a-zA-Z][\w\d_]"
+
+ident_or_literal: ident | literal
+
 ident: namespaced_ident
+namespaced_ident: raw_ident ("::" raw_ident)*
+
+literal_expr: numeric | string
 
 comma_expr: expr "," expr
 empty_expr: "(" ")"
 bracket_expr: "[" expr "]"
 bracket_list_expr: bracket_expr
 var_def_expr: "let" | "mut" | "const" ident "=" expr
-ternary_expr: (expr "?" expr ":" expr) | (expr "?:" expr)
+ternary_op: (expr "?" expr ":" expr) | (expr "?:" expr)
 
-keywords: "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | "impl"
+keywords: "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | "impl" | "deref" | "ref"
 
+// OPERATORS
 // increasing order of precedence
-binary_operator: |"&" | "|" | "^" | "*" | "/" | "+" | "-" | "==" | "="
+binary_op: expr binary_operator expr
+binary_operator: "&" | "|" | "^" | "*" | "/" | "+" | "-" | "==" | "="
 postfix_unary_operator: "?" | "!"
 prefix_unary_operator: "~" | "*" | "&"
 unary_refinement_op: binary_operator
+self_op: "."
 
 refinement_expr: expr
+
+// MACROS
+scope_expr: "{" expr* "}"
+modified_scope_expr: m1_expr | m2_expr
+m1_expr: raw_ident scope_expr
+m2_expr: raw_ident macro_params? scope_expr
 ```
 
 ## Examples
@@ -77,6 +97,11 @@ refinement_expr: expr
 *3 + 1
 // *3 parsed as unary prefix
 // + 1
+
+* 3 + 1
+
+// could either mean deref <expr>
+// or mult <expr>
 
 f: (x: Int)
 // the following two are equivalent. If you have Int() and = at once, that is an error
@@ -106,4 +131,15 @@ T: impl Plus (v self, v Self) -> Self => ...
 f: (t1: v T, t2: v T) {
     t1 + t2
 }
+
+// what replace actually is
+
+x: replace () => ()
+
+// virtual impl I guess
+replace: impl Index(i: Int) => .. invoke macro
+
+// associativity...
+// everything is left associative
+// BODMAS
 ```
