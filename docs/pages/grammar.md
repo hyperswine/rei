@@ -26,16 +26,17 @@ expr:
 
 // GENERAL DEF
 general_def: raw_ident generic_param_expr? ":" general_def_type
-general_def_type: parameterised_expr | ("extend"? algebraic_expr)
+general_def_type: parameterised_expr | ("extend"? algebraic_expr) | mod_scope | replace_expr
 generic_param_expr: "[" generic_param* "]"
 generic_param: (raw_ident ":")? ident impl_expr?
 
 // ALGEBRAIC
-algebraic_expr: enum_expr | product_expr
-enum_expr: "enum" scope_expr
+algebraic_expr: alias_expr | enum_expr | product_expr
+alias_expr: ident
+enum_expr: ("enum" scope_expr) | (ident ("|" ident)+)
 
 // PARAMETERISED
-parameterised_expr: paren_param_list+
+parameterised_expr: paren_param_list+ ret_type? (eval_expr | scope_expr)
 paren_param_list: "(" param ("," param)* ")"
 param: raw_ident type_expr? refinements?
 type_expr: ":" ident arg_expr?
@@ -43,6 +44,11 @@ refinements: refinement ("," refinement)*
 refinement: unary_refinement_op ident_or_literal
 
 impl_expr: "impl" ident ("+" ident)*
+
+// dont try to flesh it out too hard
+replace_expr: "replace" parameterised_expr | scope_expr
+
+call_expr: expr "(" expr ")"
 
 // maybe a self contained expression?
 // cant encode 1 equals to, mutual exclusion with default call
@@ -57,6 +63,8 @@ ident: namespaced_ident
 namespaced_ident: raw_ident ("::" raw_ident)*
 
 literal_expr: numeric | string
+
+eval_expr: "=>" expr
 
 comma_expr: expr "," expr
 empty_expr: "(" ")"
@@ -142,4 +150,30 @@ replace: impl Index(i: Int) => .. invoke macro
 // associativity...
 // everything is left associative
 // BODMAS
+
+Box {
+    bg_color=Blue
+
+    Box
+    HBox
+    Flex
+    Text
+}
+
+// using dependent type parameter as the default
+V[v: x::V]: {
+    v1: Int(v)
+}
+
+// where is it useful? well when you can write functions specifically taking in the dependent type parameters into account
+k: (arg[v: V == 0]) {}
+
+index: trait (i: _) -> ()
+
+// static refinement
+array: impl index(i >= 0) -> () {}
+
+Array[T, N]: [T; N]
+
+Array[T, N]: impl Index(i < N)
 ```
