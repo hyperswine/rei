@@ -8,6 +8,9 @@ title: Grammar
 Expressions, expressions, expressions.
 
 ```rust
+// ' ' means any whitespace. Means follow
+// ~ means horizontal whitespace. Means directly follow
+
 expr: 
     | paren_expr
     | empty_expr
@@ -28,7 +31,7 @@ expr:
 general_def: raw_ident generic_param_expr? ":" general_def_type
 general_def_type: parameterised_expr | ("extend"? algebraic_expr) | mod_scope | replace_expr
 generic_param_expr: "[" generic_param* "]"
-generic_param: (raw_ident ":")? ident impl_expr?
+generic_param: (raw_ident ~ ":")? ident impl_expr?
 
 // ALGEBRAIC
 algebraic_expr: alias_expr | enum_expr | product_expr
@@ -48,36 +51,38 @@ impl_expr: "impl" ident ("+" ident)*
 // dont try to flesh it out too hard
 replace_expr: "replace" parameterised_expr | scope_expr
 
-call_expr: expr "(" expr ")"
+// generally not a definition expression, but a context expr?
+// expr = def_expr | context_expr
+call_expr: expr ~ "(" comma_expr ")"
 
 // maybe a self contained expression?
 // cant encode 1 equals to, mutual exclusion with default call
 
 raw_ident: pub_ident | priv_ident
-priv_ident: "_" pub_ident
+priv_ident: "_"pub_ident
 pub_ident: "[a-zA-Z][\w\d_]"
 
 ident_or_literal: ident | literal
 
 ident: namespaced_ident
-namespaced_ident: raw_ident ("::" raw_ident)*
+namespaced_ident: raw_ident ("::"raw_ident)*
 
 literal_expr: numeric | string
 
 eval_expr: "=>" expr
 
-comma_expr: expr "," expr
+comma_expr[expr]: expr ~ ("," expr)* ","?
 empty_expr: "(" ")"
 bracket_expr: "[" expr "]"
 bracket_list_expr: bracket_expr
 var_def_expr: "let" | "mut" | "const" ident "=" expr
-ternary_op: (expr "?" expr ":" expr) | (expr "?:" expr)
+ternary_op: (expr ~ "?" ~ expr ":" expr) | (expr ~ "?:" expr)
 
 keywords: "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | "impl" | "deref" | "ref"
 
 // OPERATORS
 // increasing order of precedence
-binary_op: expr binary_operator expr
+binary_op: expr ~ binary_operator ~ expr
 binary_operator: "&" | "|" | "^" | "*" | "/" | "+" | "-" | "==" | "="
 postfix_unary_operator: "?" | "!"
 prefix_unary_operator: "~" | "*" | "&"
@@ -89,8 +94,8 @@ refinement_expr: expr
 // MACROS
 scope_expr: "{" expr* "}"
 modified_scope_expr: m1_expr | m2_expr
-m1_expr: raw_ident scope_expr
-m2_expr: raw_ident macro_params? scope_expr
+m1_expr: raw_ident ~ scope_expr
+m2_expr: raw_ident ~ macro_params? scope_expr
 ```
 
 ## Examples
