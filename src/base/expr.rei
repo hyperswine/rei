@@ -93,30 +93,14 @@ export Expr: enum {
     }
 }
 
-Variable: {
-    // either an object or something
-    type_ident: Ident
-}
-
-// only self contained expressions
-reorder_operations: (expr: Expr) -> Expr {
-    mut res = Expr()
-
-    // maybe you can just parse it...?
-}
-
-// RUST API
-use Rust::reic::lex::LEXER
-
-# reexport
-export LEXER: ReiLexer
+Variable: Ident
 
 #*
     PARSING LOGIC to create the AST
 *#
 
-use core::expr::*
-use std::expr::*
+// use core::expr::*
+// use std::expr::*
 
 export ParserError: Token
 export ParseRes: Expr | ParserError
@@ -352,35 +336,4 @@ Parser: extend {
         // find baseident :: baseident :: baseident, maybe thats possible directly?
         self.accept(Token::NSIdentifier)?
     }
-
-    // is it possible to implicitly reset the peek counter per function on a return Error?
-    // maybe just remember it on the base expr? no cause you need to call the next one right afterwards on the same expr
-    // so reset it on Error or use effects or something. Or have an implicit way to track the peek counter per call with a marking or something
-    // maybe a marker field like peek: Int
-    // macro_expr: (&mut self) {
-    //     // self.peek + 1
-    //     let ident = self.ident_expr()?
-    //     // check either scope or ident
-    //     let ident2 = self.ident_expr()?
-    // }
 }
-
-Parser: extend {
-
-}
-
-// BinaryOp: ()
-// BinOpFn: (Expr, BinaryOperator, Expr) -> ()
-
-// core::Index[T]
-/*
-BinaryOp: impl core::Index(token: Token) -> BinOpFn? {
-    // either this or a fn annotation above binop_* but might not be as easy to understand?
-    static const MAP = {
-        // there may be specific binary operations based on the context?
-        // hmm maybe do this during the descent?
-        Plus = binop_plus
-        Minus = binop_minus
-    }
-}
-*/
