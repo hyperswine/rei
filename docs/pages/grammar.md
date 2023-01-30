@@ -11,7 +11,21 @@ Expressions, expressions, expressions.
 // ' ' means any whitespace. Means follow
 // ~ means horizontal whitespace. Means directly follow
 
-expr: 
+// expressions followed by any whitespace
+rei: expr+
+
+expr: def_expr | context_expr | misc_expr
+
+// in most cases, def expressions should just work, except within idk..?
+def_expr: general_def
+// operations, calls
+context_expr: operator_expr | var_def_expr | call_expr
+misc_expr: paren_expr | scope_expr | expr_list | literal_expr
+
+// in a bunch of cases, might not be sensible
+expr_list: expr ~ (expr ~ ",")+
+
+all_expr: 
     | paren_expr
     | empty_expr
     // | bracket_list_expr
@@ -78,7 +92,7 @@ bracket_list_expr: bracket_expr
 var_def_expr: "let" | "mut" | "const" ident "=" expr
 ternary_op: (expr ~ "?" ~ expr ":" expr) | (expr ~ "?:" expr)
 
-keywords: "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | "impl" | "deref" | "ref"
+keywords: "self" | "Self" | "return" | "async" | "await" | "yield" | "export" | "mod" | "trait" | "impl" | "deref" | "ref"
 
 // OPERATORS
 // increasing order of precedence
@@ -127,6 +141,13 @@ f: (x: Int < 5, < 10, = 10)
 
 f: (x: Int < 5, < 10, y: String = "f")
 f: (x: Int lessthan(5), y: String)
+
+// means op 3
+f: (Int) => + 3
+// means 3, input is irrelevant, will show unused input
+f: (Int) => +3
+
+g: ((Int, Int, Int)) => + (3, 6, 9)
 
 // normal generic
 T[T1, T2]: {
@@ -181,4 +202,59 @@ array: impl index(i >= 0) -> () {}
 Array[T, N]: [T; N]
 
 Array[T, N]: impl Index(i < N)
+
+// if it sees it can apply a binary op, it will do so before the unary
+// if Mul doesnt exist, cannot compile? well Mul basically cant exist
+(*): BinaryOp(precedence=10, bind=Mul)
+(*): UnaryOp(5, Prefix, Deref)
+
+(++): UnaryOp(8, Postfix, Increment)
+
+// op is like trait but for operators
+
+Numeric: impl Increment(self) => self + 1
+
+5++
+
+// scopes. NOTE: mod is irrelevant
+
+plus_ten: {
+    // if you call g(), get 10
+    () => 10
+
+    // g(10) = 20
+    // private function
+    _(Int) => + 10
+
+    // error! cannot add two args a b to scalar 10
+    // (Int, Int) => + 10
+
+    // a is unused
+    (a: Int) (b: Int) => $1 + b
+    (Int) (Int) => $1 + $2
+}
+
+// you cant import unlabelled names as you must qualify them directly
+// use plus_ten::()
+use plus_ten
+
+plus_ten()
+
+let x = plus_ten(1)
+// 12
+x(1)
+
+// will not run on as a program on neutron
+let x = Address(0x0)
+
+let x = 10
+// reference the data at x. What this means depends on the context and usage
+let y = &x
+
+// (1, 2, 3): (Numeric, Numeric, Numeric)
+1, 2, 3
+
+// let x = y evaluates to (), let y = z evaluates to ()
+// ((), ()): (Empty, Empty)
+let x = y, let y = z
 ```
