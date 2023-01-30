@@ -6,7 +6,7 @@ use pkg::common::Size
 use core::prelude::alloc
 
 # A standard vector
-export Vec[T]: {
+Vec[T]: {
     // private field
     _internal: {
         arr: *mut T
@@ -18,7 +18,7 @@ export Vec[T]: {
     () -> Self => Self { _internal: { arr: alloc(_items_to_allocate_default) } }
 }
 
-export Tree[T]: {
+Tree[T]: {
     _tree: {
         root: *mut T
         n_nodes: Size

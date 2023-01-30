@@ -6,11 +6,11 @@
 // Vec2D<T> is also defined and From<[[T]]> is defined
 
 # Companion Data
-export Matrix<T>: {
+Matrix<T>: {
     _data: Vec2D<T>
 }
 
-export Matrix<T>: {
+Matrix<T>: {
     // => means only consider the next self contained expr, usually for one liners
     new: (_data: &[[T]]) -> Self => Self{_data}
     new: (_data: &[T], rows: Size, cols: Size) -> Self {
@@ -31,7 +31,7 @@ export Matrix<T>: {
 // Matrix(...) => auto deduced
 
 // You can have multiple systems of the same name, but with differing fields and fn signatures, etc
-export Matrix<T>: {
+Matrix<T>: {
     // impl Add() {}
     // impl Subtract() {}
     // impl Multiply() {}
@@ -41,7 +41,7 @@ export Matrix<T>: {
 }
 
 // type alias
-export DataFrame: Matrix<String>
+DataFrame: Matrix<String>
 
 // a complex + a data object type promotes the data object into a companion object
-export DataFrame: {}
+DataFrame: {}

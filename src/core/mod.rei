@@ -6,7 +6,7 @@
 
 use base::expr::Expr
 
-export lower: (expr: Expr) {
+lower: (expr: Expr) {
     match expr {}
 }
 
@@ -22,7 +22,7 @@ export lower: (expr: Expr) {
 // some ops may be only unary some maybe only binary
 
 /*
-export UnaryOperator: enum {
+UnaryOperator: enum {
     Prefix: enum {
         Star: Deref
         Ampersand: Ref
@@ -41,7 +41,7 @@ export UnaryOperator: enum {
 // if impl for Bits, can use for Numeric and String
 
 /*
-export BinaryOperator: enum {
+BinaryOperator: enum {
     Star: Mul
     Plus: Add
     Minus: Sub

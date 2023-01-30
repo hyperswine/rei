@@ -21,10 +21,10 @@ export(prelude) String[CharT, Size]: {
     v: [CharT; Size]
 }
 
-export AsciiString: Vec[Byte]
+AsciiString: Vec[Byte]
 
 // Force reference so you only define it once
-export StaticString: &str
+StaticString: &str
 
 // UTF-8 or 16
-export UnicodeString: Utf8String | Utf16String
+UnicodeString: Utf8String | Utf16String

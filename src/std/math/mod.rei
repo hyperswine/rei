@@ -1,8 +1,8 @@
 #*
-    Reexport core math functions and define useful functions
+    Recore math functions and define useful functions
 *#
 
 // root, common and super are keywords
-export core::math::*
+core::math::*
 
-export taylor_series: () {}
+taylor_series: () {}

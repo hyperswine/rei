@@ -2,12 +2,12 @@
     Utility Display tools
 *#
 
-export Debug: annotation (derive) (&self, formatter: &mut Formatter) -> () | FmtError {}
+Debug: annotation (derive) (&self, formatter: &mut Formatter) -> () | FmtError {}
 
-// export Display: trait (&self, formatter: &mut Formatter) -> () | FmtError
+// Display: trait (&self, formatter: &mut Formatter) -> () | FmtError
 
 # for @derive(Display)
-export Display: annotation (derive) (tokens: Tokens) {
+Display: annotation (derive) (tokens: Tokens) {
     match tokens.parse() {
         Ok(vis, ident, fields...) => {
             add_to_namespace(

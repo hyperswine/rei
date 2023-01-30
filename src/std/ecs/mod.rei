@@ -12,7 +12,7 @@ once RingBuffer { mut global_ecs = ECSBackend() }
 // Instead, they control access to global systems and resources
 
 # A system makes the ECS backend know of the fn and callable from the main system thread
-export system: annotation (fn_expr: Fn) {
+system: annotation (fn_expr: Fn) {
     // all systems are functions that take in components
     global_ecs.register(fn_expr)
 }

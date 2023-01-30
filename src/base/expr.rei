@@ -4,8 +4,8 @@
 
 use super::[Operator]
 
-export Lhs: Expr
-export Rhs: Expr
+Lhs: Expr
+Rhs: Expr
 
 // in list-like scopes you dont need commas
 // otherwise you do
@@ -13,7 +13,7 @@ export Rhs: Expr
 // X: (A B)
 
 # Extendable by core and std. Or by another compiler suite/"builtin library"
-export Expr: enum {
+Expr: enum {
     # utf8 namespaced string
     IdentExpr: String
     # no namespacing, e.g. for general and sequential defs
@@ -102,8 +102,8 @@ Variable: Ident
 // use core::expr::*
 // use std::expr::*
 
-export ParserError: Token | String
-export ParseRes: Expr | ParserError
+ParserError: Token | String
+ParseRes: Expr | ParserError
 
 // great idea, just make a new function like split_first: (self, String) -> (String, String)
 // and Char is castable to String, and the other way around if len is 0, otherwise UB?

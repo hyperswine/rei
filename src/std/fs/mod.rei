@@ -3,7 +3,7 @@
 @target(os = "neutron")
 use neutronapi
 
-export read_file: (file: &str) -> String | String {
+read_file: (file: &str) -> String | String {
     // propagate Ok, take Err
     @target(os = "neutron")
     let err = neutronapi::read(file)!
@@ -14,7 +14,7 @@ export read_file: (file: &str) -> String | String {
 // can also do import pkg::common::{Byte,Size}
 use pkg::common::[Byte Size]
 
-export write: (file: &str, buf: &[Byte]) -> () | String {
+write: (file: &str, buf: &[Byte]) -> () | String {
     @target(os = "neutron")
     neutronapi::write(file, buf)!?
 }

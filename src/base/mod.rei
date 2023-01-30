@@ -14,7 +14,7 @@ Bits[N]: [bool: N]
 Numeric: Bits[u128]
 Numeric[T, N]: [Bits[T]; N]
 
-export BASE_NUMERIC_VALUE: 0
+BASE_NUMERIC_VALUE: 0
 
 # "*". In core, we also allow modifiers like r"*"
 BaseString: ()
@@ -53,22 +53,22 @@ Descriptor: {
     Operator Expressions
 */
 
-export trait UnaryOp[T, Rhs, Res]: (self, op_type: T, rhs: Rhs) -> Res
-export trait BinaryOp[T, UnaryType, Res]: (self, unary_type: UnaryType, op_type: T) -> Res
+trait UnaryOp[T, Rhs, Res]: (self, op_type: T, rhs: Rhs) -> Res
+trait BinaryOp[T, UnaryType, Res]: (self, unary_type: UnaryType, op_type: T) -> Res
 
 # return a list of operators
-export Operators: () -> _ {
+Operators: () -> _ {
     Operator.for_each(o => o.to_string())
 }
 
 // maybe do have unary and binary ops after all?
-export UnaryOps: () -> _ {
+UnaryOps: () -> _ {
     // some ops like star can be chained like **var, check for those too
     [Tilde ExclamationMark QuestionMark Star Ampersand]
 }
 
 # Not ordered, simply the mechanism, no policy
-export Operator: enum {
+Operator: enum {
     @equivable
     Tilde: "~"
     ExclamationMark: "!"
@@ -122,7 +122,7 @@ export Operator: enum {
 // but fn can make it more customisable and readable in some cases
 
 // expr op= expr
-// export operate_equable: () -> &[Operator] {
+// operate_equable: () -> &[Operator] {
 //     [
 //         Tilde, 
 //     ]

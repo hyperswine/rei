@@ -22,13 +22,13 @@ Float64: Numeric[64]
 Float128: Numeric[128]
 
 // USEFUL ALIASES...
-export i8: Int8
-export i16: Int16
-export i32: Int32
-export i64: Int64
-export i128: Int128
+i8: Int8
+i16: Int16
+i32: Int32
+i64: Int64
+i128: Int128
 
-export Range[Index]: {
+Range[Index]: {
     start: Index
     end: Index
 }
@@ -39,7 +39,7 @@ export Range[Index]: {
 
 // associated types can also be declared with the where statement for trait fns
 // associative functions
-// export Add<Rhs, Res>: trait (self, rhs: Rhs) -> Res
-// export Mult<Rhs, Res>: trait (self, rhs: Rhs) -> Res
-// export Sub<Rhs, Res>: trait (self, rhs: Rhs) -> Res
-// export Div<Rhs, Res>: trait (self, rhs: Rhs) -> Res
+// Add<Rhs, Res>: trait (self, rhs: Rhs) -> Res
+// Mult<Rhs, Res>: trait (self, rhs: Rhs) -> Res
+// Sub<Rhs, Res>: trait (self, rhs: Rhs) -> Res
+// Div<Rhs, Res>: trait (self, rhs: Rhs) -> Res

@@ -32,7 +32,7 @@ Scene: {
     children: Vec[Model]
 }
 
-export load_glb: (path: Path) -> _ {
+load_glb: (path: Path) -> _ {
     let bytes = read_bytes(path)?
 
     Glb(bytes)

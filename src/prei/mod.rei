@@ -21,13 +21,13 @@ Module: extend Symbol {
     : means         general definition
     => means        "one line" general definition
     = means         sequential definition
-    export means    universal definition (prei)
-    no export       means local definition (prei)
+    means    universal definition (prei)
+    no       means local definition (prei)
 */
 
 export: macro {}
 
 # A live lowerer of a package
-export Lowerer: {
+Lowerer: {
     root_symbol: Symbol
 }

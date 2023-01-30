@@ -2,7 +2,7 @@
     Rei Test Functionalities
 *#
 
-export Expect: enum {
+Expect: enum {
     Success
     Fail
 }
@@ -10,7 +10,7 @@ export Expect: enum {
 use prei::registry
 use reic::Expr
 
-export test: annotation (expect: Expect=Success, description: String?) {
+test: annotation (expect: Expect=Success, description: String?) {
     // get the token stream. Note stream is in reic::parse reexported in std
     let test_fn_ast = stream.parse(Expr::Fn)
 

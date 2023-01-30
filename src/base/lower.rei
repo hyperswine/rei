@@ -6,18 +6,18 @@ use Rust::cranelift::prelude::*
 use super::expr::[Ident ReiType Expr]
 use super::optimizer::*
 
-export Symbol: BaseSymbol | ScopeSymbol
+Symbol: BaseSymbol | ScopeSymbol
 
 // reitype is a base feature
 // nvm it seems, I seem to care about modular and ELEGANT programming
 
-export BaseSymbol: {
+BaseSymbol: {
     ident: Ident
     type: ReiType
     node: &Expr
 }
 
-export ScopeSymbol: {
+ScopeSymbol: {
     inner_scope: Box[Symbol]
 }
 
@@ -190,10 +190,10 @@ lower_cranelift: (, expr: Expr) -> CraneliftSchematic | CompileError {}
     - something about an enum mapping between ops and traits somewhere. But then also need to find that impl right there and then? seems to make sense to preprovide the mapping and clarify the impls on the fly?
 */
 
-export CraneliftSchematic: CraneliftIR
+CraneliftSchematic: CraneliftIR
 
 # incremental compile expr
-export compile_expr: (string: String) -> Vec[Instruction] {
+compile_expr: (string: String) -> Vec[Instruction] {
     let expr = parse(LEXER.lex(file_contents)).expr()
     lower(expr)
 }
@@ -204,7 +204,7 @@ export compile_expr: (string: String) -> Vec[Instruction] {
 
 // Any incremental interpretation? Interpret AST for consteval and AST/tree sitter interpretation
 
-export default interpret_expr: (expr: Expr) -> ReiType<T*> {
+default interpret_expr: (expr: Expr) -> ReiType<T*> {
     match expr {
         AnnotationExpr => {
             eprintln("Annotations are not supported in Rei")
@@ -335,7 +335,7 @@ f: (a: &Int, b: &String) => ()
 main: () {}
 */
 
-export elide_lt: () => ()
+elide_lt: () => ()
 
 /*
     Possible Optimisations
@@ -343,7 +343,7 @@ export elide_lt: () => ()
 
 # always generate this so if you add more conds you can incrementally remake the hash
 # maybe place this in expr or codegen or optimizer
-export DirectJumpFn: {
+DirectJumpFn: {
     a: u64
     b: u64
 
