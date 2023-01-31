@@ -60,6 +60,12 @@ type_expr: ":" ident arg_expr?
 refinements: refinement ("," refinement)*
 refinement: unary_refinement_op ident_or_literal
 
+// PARAM can be either an anonymous param without a label
+// (Int)
+// ((Int) -> ())
+// ((String, String) -> Int < 5)
+// or it could have a label
+
 impl_expr: "impl" ident ("+" ident)*
 
 // dont try to flesh it out too hard
