@@ -8,6 +8,20 @@ title: Grammar
 Expressions, expressions, expressions.
 
 ```rust
+rei: expr+
+
+expr: def_expr | let_expr | context_expr | trivial_expr
+
+def_expr: identifier generics? ":" enum | parameterised | context_expr | trivial_expr
+
+context_expr: call_expr | tuple_expr | vec_expr
+
+trivial_expr: literal | identifier
+
+call_expr: expr ~ "(" args* ")"
+```
+
+```rust
 // ' ' means any whitespace. Means follow
 // ~ means horizontal whitespace. Means directly follow
 
