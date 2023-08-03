@@ -2,11 +2,9 @@
 
 Query-based Compilation (lexing, parsing, codegen API), Project Management, Standard Libraries.
 
-![Rei](/docs/ReiLogo.png)
+![Rei](/notes/ReiLogo1.png)
 
 A programming language that just works.
-
-[Semi thorough documentation can be found in here](https://hyperswine.github.io/rei)
 
 ## Bootstrapping
 
