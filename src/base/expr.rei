@@ -140,30 +140,30 @@ implicit_peek_reset[T: Iter::Peek]: annotation (block: GeneralDef[T]) {
 }
 
 Parser: {
-    // associated state / components
-    tokens: Vec[(Token, Range)]
-    curr_index: Size
-    input_string: String
-    peek_index: Size
+  // associated state / components
+  tokens: Vec[(Token, Range)]
+  curr_index: Size
+  input_string: String
+  peek_index: Size
 
-    // priority slots for expressions
-    low_prio: []
-    med_prio: []
-    high_prio: []
+  // priority slots for expressions
+  low_prio: []
+  med_prio: []
+  high_prio: []
 
-    // NOTE: the IDE should add : _ or : Vec<_>, String
-    new: (tokens: _, input_string: _) -> Self => Self {tokens, curr_index: 0, input_string }
+  // NOTE: the IDE should add : _ or : Vec<_>, String
+  new: (tokens: _, input_string: _) -> Self => Self {tokens, curr_index: 0, input_string }
 
-    // Parser API
-    accept: (&mut self, token: Token) -> LexData? => _accept(self.curr_index) == token? LexData(token) : Err()
+  // Parser API
+  accept: (&mut self, token: Token) -> LexData? => _accept(self.curr_index) == token? LexData(token) : Err()
 
-    expect: (&mut self, token: token) -> LexData => self.accept(token).unwrap()
+  expect: (&mut self, token: token) -> LexData => self.accept(token).unwrap()
 
-    Iter::Peek: impl {
-        reset_peek: (&mut self) => self.peek_index = self.curr_index
+  Iter::Peek: impl {
+    reset_peek: (&mut self) => self.peek_index = self.curr_index
 
-        peek: (&mut self, n: (Size > 0) = 1) -> Token => _accept(self.peek_index, n)
-    }
+    peek: (&mut self, n: (Size > 0) = 1) -> Token => _accept(self.peek_index, n)
+  }
 
     // more generic accept
     _accept: (index: &mut Index, increment: Int) -> Token {
