@@ -3,7 +3,7 @@
 @target(os = "neutron")
 use neutronapi
 
-export read_file: (file: &str) -> String | String {
+export read_file: (file: &str) -> Result String String {
     // propagate Ok, take Err
     @target(os = "neutron")
     let err = neutronapi::read(file)!
