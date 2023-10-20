@@ -6,4 +6,3 @@ Meta: enum
 Meta: (meta_node) -> ??
   match meta_node
     Identifier ident => ??
-    
